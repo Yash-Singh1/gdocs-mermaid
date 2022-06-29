@@ -1,10 +1,5 @@
-import { defineConfig, Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import * as path from 'node:path';
-import legacy from './vitePluginLegacy/index.js';
-import { viteSingleFile } from 'vite-plugin-singlefile';
-import * as fs from 'node:fs';
-import systemJSLoader from 'rollup-plugin-systemjs-loader';
 
 // Need to rewrite vite-plugin-singlefile due to edge case accounting and bugs
 
@@ -93,57 +88,17 @@ export function vitePluginInlinejs() {
   };
 }
 
-export function vitePluginUseGsImport() {
-  return {
-    name: 'use-gs-import',
-    enforce: 'post' as const,
-    generateBundle(_, bundle) {
-      const htmlFiles = Object.keys(bundle).filter((i) => i.endsWith('.html'));
-      const srcReg = /(src="[^"\s]+?)(\.js")/gm;
-      for (const htmlFile of htmlFiles) {
-        const htmlChunk = bundle[htmlFile];
-        let replacedHtml = htmlChunk.source;
-        replacedHtml = replacedHtml.replaceAll(srcReg, '$1.gs"');
-        htmlChunk.source = replacedHtml;
-      }
-    },
-  };
-}
-
 function configBuilder(input) {
   return defineConfig({
-    // root: __dirname,
     plugins: [
       vue(),
-      // legacy({
-      //   polyfills: false,
-      //   // renderLegacyChunks: false,
-      // }),
-      // systemJSLoader({
-      //   include: [require.resolve('systemjs/dist/s.js')],
-      // }),
       vitePluginInlineCSS(),
-      // viteSingleFile({
-      //   inlinePattern: ['*.js'],
-      //   useRecommendedBuildConfig: false,
-      // }),
       vitePluginInlinejs(),
-      //   vitePluginUseGsImport(),
     ],
     build: {
-      // outDir: path.resolve(__dirname, 'dist/'),
       emptyOutDir: true,
       target: 'es2015',
       rollupOptions: {
-        // input: {
-        //   sidebar: path.resolve(__dirname, 'sidebar/index.html'),
-        //   dialog: path.resolve(__dirname, 'dialog/index.html'),
-        //   // Code: path.resolve(__dirname, 'server/Code.ts'),
-        // },
-        // input: [
-        //   path.resolve(__dirname, 'sidebar/index.html'),
-        //   path.resolve(__dirname, 'dialog/index.html'),
-        // ],
         input,
         output: {
           entryFileNames: `[name].js`,
