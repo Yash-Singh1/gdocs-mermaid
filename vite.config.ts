@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
+// TODO: Remove this when vite-plugin-singlefile merges PRs and releases
 // Need to rewrite vite-plugin-singlefile due to edge case accounting and bugs
 
 export function replaceCss(
