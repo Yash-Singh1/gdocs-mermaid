@@ -1,3 +1,6 @@
 {
+  "compilerOptions": {
+    "outFile": "server/Code.js"
+  },
   "files": ["server/Code.ts"]
 }

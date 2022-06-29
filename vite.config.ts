@@ -111,27 +111,27 @@ export function vitePluginUseGsImport() {
 }
 
 function configBuilder(input) {
-  defineConfig({
-    root: __dirname,
+  return defineConfig({
+    // root: __dirname,
     plugins: [
       vue(),
       // legacy({
       //   polyfills: false,
       //   // renderLegacyChunks: false,
       // }),
-      systemJSLoader({
-        include: [require.resolve('systemjs/dist/s.js')],
-      }),
+      // systemJSLoader({
+      //   include: [require.resolve('systemjs/dist/s.js')],
+      // }),
       vitePluginInlineCSS(),
       // viteSingleFile({
       //   inlinePattern: ['*.js'],
       //   useRecommendedBuildConfig: false,
       // }),
-      // vitePluginInlinejs(),
+      vitePluginInlinejs(),
       //   vitePluginUseGsImport(),
     ],
     build: {
-      outDir: path.resolve(__dirname, 'dist/'),
+      // outDir: path.resolve(__dirname, 'dist/'),
       emptyOutDir: true,
       target: 'es2015',
       rollupOptions: {
@@ -140,16 +140,17 @@ function configBuilder(input) {
         //   dialog: path.resolve(__dirname, 'dialog/index.html'),
         //   // Code: path.resolve(__dirname, 'server/Code.ts'),
         // },
-        input: [
-          path.resolve(__dirname, 'sidebar/index.html'),
-          path.resolve(__dirname, 'dialog/index.html'),
-        ],
+        // input: [
+        //   path.resolve(__dirname, 'sidebar/index.html'),
+        //   path.resolve(__dirname, 'dialog/index.html'),
+        // ],
+        input,
         output: {
           entryFileNames: `[name].js`,
           chunkFileNames: `[name].js`,
           assetFileNames: `[name].[ext]`,
           inlineDynamicImports: false,
-          format: 'system',
+          format: 'iife',
         },
       },
       cssCodeSplit: false,

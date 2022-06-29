@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
-    "build": "cp appsscript.json public/; vue-tsc --noEmit && vite build && tsc --project tsconfig.server.json && mv server/Code.js dist/Code.gs && mv dist/dialog/index.html dist/dialog.html && mv dist/sidebar/index.html dist/sidebar.html",
+    "build": "rm -rf dist/ && mkdir dist/ && cp appsscript.json public/; pnpm --filter sidebar --filter dialog run build && mv dialog/dist/index.html dist/dialog.html && mv sidebar/dist/index.html dist/sidebar.html && for f in $(ls -a public/ | tail -n +3); do cp public/$f dist/; done; pnpm -w run build:server && mv server/Code.js dist/Code.gs",
+    "build:server": "esbuild server/Code.ts --tsconfig=tsconfig.server.json > server/Code.js",
     "preview": "vite preview",
     "clasp:create": "pnpm build && cd dist && clasp create --title Flowcast --type docs && cp appsscript.json .. && cp .clasp.json ../public",
     "clasp:status": "cd dist && clasp status",
@@ -20,6 +21,7 @@
     "@vitejs/plugin-legacy": "^1.8.2",
     "@vitejs/plugin-vue": "^2.3.3",
     "core-js": "^3.22.3",
+    "esbuild": "^0.14.27",
     "magic-string": "^0.26.2",
     "rollup-plugin-systemjs-loader": "1.0.1",
     "systemjs": "^6.12.1",
