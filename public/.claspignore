@@ -1,0 +1,8 @@
+**/*
+!*.gs
+!appsscript.json
+!*.html
+!*-legacy.js
+!*-legacy2.js
+!*-legacy.*.js
+!*-legacy2.*.js

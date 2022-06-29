@@ -1,0 +1,31 @@
+{
+  "name": "docs-addon",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "cp appsscript.json public/; vue-tsc --noEmit && vite build && tsc --project tsconfig.server.json && mv server/Code.js dist/Code.gs && mv dist/dialog/index.html dist/dialog.html && mv dist/sidebar/index.html dist/sidebar.html",
+    "preview": "vite preview",
+    "clasp:create": "pnpm build && cd dist && clasp create --title Flowcast --type docs && cp appsscript.json .. && cp .clasp.json ../public",
+    "clasp:status": "cd dist && clasp status",
+    "clasp:push": "pnpm build && cd dist && clasp push"
+  },
+  "dependencies": {
+    "vue": "^3.2.37"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.4.1",
+    "@types/google-apps-script": "^1.0.49",
+    "@types/node": "^18.0.0",
+    "@vitejs/plugin-legacy": "^1.8.2",
+    "@vitejs/plugin-vue": "^2.3.3",
+    "core-js": "^3.22.3",
+    "magic-string": "^0.26.2",
+    "rollup-plugin-systemjs-loader": "1.0.1",
+    "systemjs": "^6.12.1",
+    "typescript": "^4.7.4",
+    "vite": "^2.9.12",
+    "vite-plugin-singlefile": "^0.10.0-beta.2",
+    "vue-tsc": "^0.35.2"
+  }
+}

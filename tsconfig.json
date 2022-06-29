@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "useDefineForClassFields": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    // "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"],
+    "skipLibCheck": true
+  },
+  "include": [
+    "sidebar/**/*.ts",
+    "sidebar/**/*.d.ts",
+    "sidebar/**/*.tsx",
+    "sidebar/**/*.vue",
+    "dialog/**/*.ts",
+    "dialog/**/*.d.ts",
+    "dialog/**/*.tsx",
+    "dialog/**/*.vue",
+    // "server/**/*.ts",
+  ],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
