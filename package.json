@@ -4,12 +4,14 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
-    "build": "rm -rf dist/ && mkdir dist/ && cp appsscript.json public/; pnpm --filter sidebar --filter dialog run build && mv dialog/dist/index.html dist/dialog.html && mv sidebar/dist/index.html dist/sidebar.html && for f in $(ls -a public/ | tail -n +3); do cp public/$f dist/; done; pnpm -w run build:server && mv server/Code.js dist/Code.gs",
+    "build": "rm -rf dist/ && mkdir dist/ && cp appsscript.json public/; pnpm --filter sidebar --filter dialog run --parallel build && mv dialog/dist/index.html dist/dialog.html && mv sidebar/dist/index.html dist/sidebar.html && for f in $(ls -a public/ | tail -n +3); do cp public/$f dist/; done; pnpm -w run build:server && mv server/Code.js dist/Code.gs",
     "build:server": "esbuild server/Code.ts --tsconfig=tsconfig.server.json > server/Code.js",
     "preview": "vite preview",
     "clasp:create": "pnpm build && cd dist && clasp create --title Flowcast --type docs && cp appsscript.json .. && cp .clasp.json ../public",
     "clasp:status": "cd dist && clasp status",
-    "clasp:push": "pnpm build && cd dist && clasp push"
+    "clasp:push": "pnpm --filter sidebar --filter dialog run --parallel typecheck && pnpm build && cd dist && clasp push",
+    "lint:fix": "prettier --write .",
+    "lint": "prettier --check ."
   },
   "dependencies": {
     "vue": "^3.2.37"

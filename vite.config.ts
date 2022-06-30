@@ -91,11 +91,7 @@ export function vitePluginInlinejs() {
 
 function configBuilder(input) {
   return defineConfig({
-    plugins: [
-      vue(),
-      vitePluginInlineCSS(),
-      vitePluginInlinejs(),
-    ],
+    plugins: [vue(), vitePluginInlineCSS(), vitePluginInlinejs()],
     build: {
       emptyOutDir: true,
       target: 'es2015',

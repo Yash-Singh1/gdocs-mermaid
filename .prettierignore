@@ -1,0 +1,4 @@
+dist/
+public/
+.clasp.json
+appsscript.json

@@ -17,7 +17,7 @@
     "src/*.ts",
     "**/*.d.ts",
     "**/*.tsx",
-    "**/*.vue",
+    "**/*.vue"
     // "sidebar/**/*.ts",
     // "sidebar/**/*.d.ts",
     // "sidebar/**/*.tsx",
