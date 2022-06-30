@@ -1,41 +1,30 @@
-/* What should the add-on do after it is installed */
 function onInstall() {
   onOpen();
 }
 
 function onOpen() {
-  DocumentApp.getUi()
-    .createAddonMenu()
-    .addItem('Flowcast', 'showSidebar')
-    .addToUi();
+  showSidebar();
 }
 
-/* Show a 300px sidebar with the HTML from googlemaps.html */
 function showSidebar() {
   var html = HtmlService.createTemplateFromFile('sidebar')
     .evaluate()
-    .setTitle('Flowcast'); // The title shows in the sidebar
+    .setTitle('Flowcast');
 
   DocumentApp.getUi().showSidebar(html);
   DocumentApp.getUi()
-    .createMenu('Flocast')
-    .addItem('New', 'menuItem1')
-    .addItem('Generate', 'menuItem2')
+    .createMenu('Flowcast')
+    .addItem('New', 'newDiagram')
+    .addItem('Edit Selected', 'editSelectedDiagram')
     .addSeparator()
-    .addSubMenu(
-      DocumentApp.getUi().createMenu('Edit').addItem('Second item', 'menuItem3')
-    )
-    .addToUi(); // Run the showSidebar function when someone clicks the menu
+    .addItem('Restart Addon', 'showSidebar')
+    .addToUi();
 }
 
-function menuItem1() {
+function newDiagram() {
   console.log('new');
 }
 
-function menuItem2() {
+function editSelectedDiagram() {
   console.log('generate');
-}
-
-function menuItem3() {
-  console.log('Another menu item testing seperator and submenus');
 }
