@@ -80,7 +80,6 @@ function save(code) {
   const index = selectedElement.getParent().getChildIndex(selectedElement);
   const url = `https://mermaid.ink/img/${Utilities.base64Encode(code)}`;
   let blob = UrlFetchApp.fetch(url).getBlob();
-  // TODO: look into using getChildIndex for other parents than body
   (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
     .insertInlineImage(index + 1, blob)
     .setLinkUrl(url);
