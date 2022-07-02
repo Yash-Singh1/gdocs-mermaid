@@ -1,8 +1,10 @@
-function onInstall() {
+import ensureSelected from "./helpers/ensureSelected";
+
+export function onInstall() {
   onOpen();
 }
 
-function onOpen() {
+export function onOpen() {
   // We can't immediately show the sidebar here until some interaction is done
   // This is a feature present in Google Docs Addons for security purposes
   DocumentApp.getUi()
@@ -14,7 +16,7 @@ function onOpen() {
     .addToUi();
 }
 
-function showSidebar() {
+export function showSidebar() {
   let html = HtmlService.createTemplateFromFile('sidebar')
     .evaluate()
     .setTitle('Flowcast');
@@ -22,7 +24,7 @@ function showSidebar() {
   DocumentApp.getUi().showSidebar(html);
 }
 
-function newDiagram() {
+export function newDiagram() {
   let url =
     'https://mermaid.ink/img/c2VxdWVuY2VEaWFncmFtIApBbGljZS0+PitKb2huOiBIZWxsbyBKb2huLCBob3cgYXJlIHlvdT8KQWxpY2UtPj4rSm9objogSm9obiwgY2FuIHlvdSBoZWFyIG1lPwpKb2huLS0+Pi1BbGljZTogSGkgQWxpY2UsIEkgY2FuIGhlYXIgeW91IQpKb2huLS0+Pi1BbGljZTogSSBmZWVsIGdyZWF0IQoK';
   let blob = UrlFetchApp.fetch(url).getBlob();
@@ -32,7 +34,7 @@ function newDiagram() {
     .setLinkUrl(url);
 }
 
-function editSelectedDiagram() {
+export function editSelectedDiagram() {
   if (ensureSelected('Select a Flowcast diagram to edit one')) {
     let selectedElement = DocumentApp.getActiveDocument()
       .getSelection()
@@ -55,7 +57,7 @@ function editSelectedDiagram() {
   }
 }
 
-function save(code) {
+export function save(code) {
   if (ensureSelected('Select a Flowcast diagram to edit one')) {
     let selectedElement = DocumentApp.getActiveDocument()
       .getSelection()
@@ -72,7 +74,7 @@ function save(code) {
   }
 }
 
-function deleteDiagram() {
+export function deleteDiagram() {
   if (ensureSelected('Select a Flowcast diagram to remove one')) {
     DocumentApp.getActiveDocument()
       .getSelection()
@@ -80,30 +82,4 @@ function deleteDiagram() {
       .getElement()
       .removeFromParent();
   }
-}
-
-function ensureSelected(actionMsg) {
-  const ui = DocumentApp.getUi();
-  let selectedElement = DocumentApp.getActiveDocument().getSelection();
-  if (!selectedElement) {
-    ui.alert(actionMsg, ui.ButtonSet.OK);
-    return false;
-  }
-  if (selectedElement.getRangeElements().length > 1) {
-    ui.alert('Please select a single Flowcast diagram', ui.ButtonSet.OK);
-    return false;
-  }
-  let diagramElement = selectedElement.getRangeElements()[0].getElement();
-  if (
-    diagramElement.getType() !== DocumentApp.ElementType.INLINE_IMAGE ||
-    !diagramElement
-      .asInlineImage()
-      .getLinkUrl()
-      .startsWith('https://mermaid.ink/img/')
-  ) {
-    const ui = DocumentApp.getUi();
-    ui.alert(actionMsg, ui.ButtonSet.OK);
-    return false;
-  }
-  return true;
 }

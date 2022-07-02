@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "rm -rf dist/ && mkdir dist/ && cp appsscript.json public/; pnpm --filter sidebar --filter dialog run --parallel build && mv dialog/dist/index.html dist/dialog.html && mv sidebar/dist/index.html dist/sidebar.html && for f in $(ls -a public/ | tail -n +3); do cp public/$f dist/; done; pnpm -w run build:server && mv server/Code.js dist/Code.gs",
-    "build:server": "esbuild server/Code.ts > server/Code.js",
+    "build:server": "node -r esbuild-runner/register ./server/build.ts > ./server/Code.js",
     "preview": "vite preview",
     "clasp:create": "pnpm build && cd dist && clasp create --title Flowcast --type docs && cp appsscript.json .. && cp .clasp.json ../public",
     "clasp:status": "cd dist && clasp status",
@@ -22,6 +22,7 @@
     "@types/node": "^18.0.0",
     "@vitejs/plugin-vue": "^2.3.3",
     "esbuild": "^0.14.27",
+    "esbuild-runner": "^2.2.1",
     "typescript": "^4.7.4",
     "vite": "^2.9.12",
     "vue-tsc": "^0.35.2"
