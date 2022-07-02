@@ -1,12 +1,39 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue';
+import { defineProps, ref } from 'vue';
+import unraw from './helpers/unraw';
+
+const props = defineProps({
+  code: {
+    type: String,
+    required: true,
+  },
+  mermaid: Object,
+  // idx: {
+  //   type: Number,
+  //   required: true,
+  // },
+});
+
+const code = ref(unraw(props.code));
+const error = ref('');
+
+function save() {
+  google.script.run
+    .withFailureHandler((err) => {
+      error.value = err.message;
+    })
+    .withSuccessHandler(() => {
+      error.value = '';
+      google.script.host.close();
+    })
+    .save(code.value);
+}
 </script>
 
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
+  <textarea v-model="code"></textarea>
+  <button @click="save">Save</button>
+  <span id="error" v-show="error">{{ error }}</span>
 </template>
 
 <style>
@@ -17,5 +44,13 @@ import HelloWorld from './components/HelloWorld.vue';
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+button {
+  display: block;
+}
+
+#error {
+  color: red;
 }
 </style>
