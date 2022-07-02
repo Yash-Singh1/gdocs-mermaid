@@ -103,11 +103,15 @@ function configBuilder(input) {
           assetFileNames: `[name].[ext]`,
           inlineDynamicImports: false,
           format: 'iife',
+          // Disable code-splitting to allow iife (immediately invoked function expression)
+          manualChunks: () => {
+            return 'index';
+          },
         },
       },
       cssCodeSplit: false,
-      assetsInlineLimit: 100_000_000,
-      chunkSizeWarningLimit: 100_000_000,
+      assetsInlineLimit: 100_000_000_000,
+      chunkSizeWarningLimit: 100_000_000_000,
       assetsDir: '.',
       reportCompressedSize: false,
     },

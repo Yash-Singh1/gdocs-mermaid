@@ -4,7 +4,6 @@ import App from './App.vue';
 interface State {
   mermaid: any;
   code: string;
-  idx?: number;
 }
 
 let state: State;

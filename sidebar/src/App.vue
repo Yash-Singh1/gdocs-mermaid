@@ -5,22 +5,19 @@ import {
   faPencil,
   faArrowsRotate,
   faCircleNotch,
+  faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ref, defineProps } from 'vue';
 
-const props = defineProps({
-  reduced: {
-    type: Boolean,
-    required: true,
-  },
-});
+const props = defineProps<{ reduced: boolean }>();
 
-library.add(faPlus, faPencil, faArrowsRotate, faCircleNotch);
+library.add(faPlus, faPencil, faArrowsRotate, faCircleNotch, faTrashCan);
 
 let inserting = ref(false);
 let editing = ref(false);
 let refreshing = ref(false);
+let deleting = ref(false);
 
 function insert() {
   if (!props.reduced) {
@@ -54,6 +51,17 @@ function refresh() {
     })
     .showSidebar();
 }
+
+function deleteDiagram() {
+  if (!props.reduced) {
+    deleting.value = true;
+  }
+  google.script.run
+    .withSuccessHandler(() => {
+      deleting.value = false;
+    })
+    .deleteDiagram();
+}
 </script>
 
 <template>
@@ -71,6 +79,13 @@ function refresh() {
         :spin="editing"
       />
       Edit
+    </button>
+    <button class="btn btn-primary" type="button" @click="deleteDiagram">
+      <font-awesome-icon
+        :icon="deleting ? 'fa-solid fa-circle-notch' : 'fa-solid fa-trash-can'"
+        :spin="deleting"
+      />
+      Delete
     </button>
     <button class="btn btn-primary" type="button" @click="refresh">
       <font-awesome-icon
