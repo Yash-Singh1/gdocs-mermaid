@@ -1,4 +1,3 @@
-
 export default function ensureSelected(actionMsg) {
   const ui = DocumentApp.getUi();
   let selectedElement = DocumentApp.getActiveDocument().getSelection();

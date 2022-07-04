@@ -21,8 +21,8 @@
     "dialog/**/*.ts",
     "dialog/**/*.d.ts",
     "dialog/**/*.tsx",
-    "dialog/**/*.vue"
-    // "server/**/*.ts",
+    "dialog/**/*.vue",
+    "server/**/*.ts"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

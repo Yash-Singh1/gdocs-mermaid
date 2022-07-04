@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outFile": "server/Code.js"
+    "noEmit": true
   },
-  "files": ["server/**/*.ts"]
+  "files": ["server/Code.ts"]
 }

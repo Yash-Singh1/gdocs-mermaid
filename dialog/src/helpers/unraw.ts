@@ -28,7 +28,8 @@ export default function unraw(str: string) {
           return String.fromCharCode(parseInt(match.substring(2), 16));
         case '0':
           return '\0';
-        default: // E.g., "\q" === "q"
+        default:
+          // E.g., "\q" === "q"
           return match.substring(1);
       }
     }

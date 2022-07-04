@@ -17,4 +17,4 @@ try {
   };
 }
 
-createApp(App, state as unknown as Record<string, unknown>).mount('#app');
+createApp(App, (state as unknown) as Record<string, unknown>).mount('#app');

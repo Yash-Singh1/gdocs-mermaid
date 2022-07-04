@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "clasp:create": "pnpm build && cd dist && clasp create --title Flowcast --type docs && cp appsscript.json .. && cp .clasp.json ../public",
     "clasp:status": "cd dist && clasp status",
-    "clasp:push": "pnpm --filter sidebar --filter dialog run --parallel typecheck && pnpm build && cd dist && clasp push",
+    "typecheck": "tsc --project tsconfig.server.json",
+    "clasp:push": "pnpm -w --filter sidebar --filter dialog run --parallel typecheck && pnpm build && cd dist && clasp push",
     "lint:fix": "prettier --write .",
     "lint": "prettier --check ."
   },

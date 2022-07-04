@@ -2,3 +2,4 @@ dist/
 public/
 .clasp.json
 appsscript.json
+pnpm-lock.yaml

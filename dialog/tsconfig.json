@@ -16,20 +16,6 @@
   "ts-node": {
     "transpileOnly": true
   },
-  "include": [
-    "src/*.ts",
-    "**/*.d.ts",
-    "**/*.tsx",
-    "**/*.vue"
-    // "sidebar/**/*.ts",
-    // "sidebar/**/*.d.ts",
-    // "sidebar/**/*.tsx",
-    // "sidebar/**/*.vue",
-    // "dialog/**/*.ts",
-    // "dialog/**/*.d.ts",
-    // "dialog/**/*.tsx",
-    // "dialog/**/*.vue",
-    // "server/**/*.ts",
-  ],
+  "include": ["src/*.ts", "**/*.d.ts", "**/*.tsx", "**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

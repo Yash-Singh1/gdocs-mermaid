@@ -20,7 +20,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="container" ref="container" style="height: 100%"></div>
+  <div id="container" ref="container" style="height: 100%;"></div>
 </template>
 
 <style></style>

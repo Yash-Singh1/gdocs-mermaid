@@ -1,4 +1,4 @@
-import ensureSelected from "./helpers/ensureSelected";
+import ensureSelected from './helpers/ensureSelected';
 
 export function onInstall() {
   onOpen();

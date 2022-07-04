@@ -1,1 +1,0 @@
-cp appsscript.json public/; vue-tsc --noEmit && vite build && tsc --project tsconfig.server.json && mv server/Code.js dist/Code.gs && mv dist/dialog/index.html dist/dialog.html && mv dist/sidebar/index.html dist/sidebar.html
