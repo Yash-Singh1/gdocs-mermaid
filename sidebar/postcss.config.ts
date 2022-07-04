@@ -4,7 +4,7 @@ module.exports = {
   plugins: [
     purgecss({
       content: [`./**/*.html`, `./**/*.vue`],
-      defaultExtractor(content) {
+      defaultExtractor(content: string) {
         const contentWithoutStyleBlocks = content.replace(
           /<style[^]+?<\/style>/gi,
           ''
