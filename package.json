@@ -22,11 +22,11 @@
     "@types/google-apps-script": "^1.0.49",
     "@types/node": "^18.0.0",
     "@vitejs/plugin-vue": "^2.3.3",
-    "esbuild": "^0.14.27",
+    "esbuild": "^0.14.48",
     "esbuild-runner": "^2.2.1",
     "ts-node": "^10.8.2",
     "typescript": "^4.7.4",
-    "vite": "^2.9.12",
+    "vite": "^2.9.13",
     "vue-tsc": "^0.35.2"
   }
 }
