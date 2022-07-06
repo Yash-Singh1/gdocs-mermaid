@@ -11,6 +11,7 @@
     "clasp:status": "cd dist && clasp status",
     "typecheck": "tsc --project tsconfig.server.json",
     "clasp:push": "pnpm -w --filter sidebar --filter dialog run --parallel typecheck && pnpm build && cd dist && clasp push",
+    "clasp:dev": "pnpm build && cd dist && clasp push",
     "lint:fix": "prettier --write .",
     "lint": "prettier --check ."
   },

@@ -2,7 +2,7 @@ import type { Plugin } from 'esbuild';
 import { build } from 'esbuild';
 
 let stripWrapper: Plugin = {
-  name: 'env',
+  name: 'stripWrapper',
   setup(build) {
     build.onEnd((result) => {
       result.outputFiles = result.outputFiles!.map((file) => {
@@ -23,6 +23,7 @@ build({
   plugins: [stripWrapper],
   minify: false,
   write: false,
+  logLevel: 'info',
 }).then(
   (a) => console.log(new TextDecoder().decode(a.outputFiles[0].contents)),
   () => process.exit(1)

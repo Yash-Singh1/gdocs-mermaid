@@ -112,4 +112,32 @@ function deleteDiagram() {
   padding: 0 2rem;
   --fa-animation-duration: 1s;
 }
+
+.loader {
+  box-sizing: content-box;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  border: 5px solid #fff;
+  border-top-color: #ff1e1e;
+  border-radius: 50%;
+  animation-name: rotate;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(100);
+  }
+}
+
+.hidden {
+  display: none;
+}
 </style>

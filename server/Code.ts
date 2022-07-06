@@ -57,7 +57,7 @@ export function editSelectedDiagram() {
   }
 }
 
-export function save(code) {
+export function save(code: string) {
   if (ensureSelected('Select a Flowcast diagram to edit one')) {
     let selectedElement = DocumentApp.getActiveDocument()
       .getSelection()
