@@ -21,4 +21,4 @@ try {
 google.script.host.setHeight(window.innerHeight * 2);
 google.script.host.setWidth(window.innerWidth * 2);
 
-createApp(App, state as unknown as Record<string, unknown>).mount('#app');
+createApp(App, (state as unknown) as Record<string, unknown>).mount('#app');

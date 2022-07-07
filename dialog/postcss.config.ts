@@ -11,8 +11,8 @@ module.exports = {
         );
         return (
           contentWithoutStyleBlocks
-            .match(/[A-Za-z0-9-_\./:]*[A-Za-z0-9-\._/]+/g)
-            ?.concat(['cm-editor', 'cm-scroller']) || []
+            .match(/[A-Za-z0-9-_/:]*[A-Za-z0-9-_/]+/g)
+            ?.concat(['cm-editor', 'cm-scroller', 'col-0.5', 'col-5.5']) || []
         );
       },
       safelist: [

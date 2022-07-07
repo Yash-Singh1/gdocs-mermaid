@@ -3,9 +3,13 @@ import { defineProps, nextTick, onMounted, ref } from 'vue';
 import unraw from './helpers/unraw';
 import CodemirrorEditor from './components/CodemirrorEditor.vue';
 import mermaid from 'mermaid';
-import { v4 as uuidv4 } from 'uuid';
 import type { Diagnostic } from '@codemirror/lint';
 import type { Text } from '@codemirror/state';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
+library.add(faCircleNotch);
 
 const props = defineProps<{
   code: string;
@@ -30,7 +34,7 @@ function save() {
 
 function calculate(lineNumber: number, columnNumber: number): number {
   let number = 0;
-  json.value!.slice(0, lineNumber).forEach((line) => {
+  json.value!.slice(0, lineNumber - 1).forEach((line) => {
     number += line.length + 1;
   });
   number += columnNumber;
@@ -82,9 +86,13 @@ function refresh(newValue: string) {
   }
   mermaid.initialize(props.mermaid || { theme: 'default' });
   try {
-    mermaid.render(`graph-${uuidv4()}`, code.value, (svg) => {
+    mermaid.render('diagram', code.value, (svg) => {
       if (svg.length > 0) {
+        svg = svg.replace('<svg', '<svg preserveAspectRatio="xMinYMin"');
         container.value!.innerHTML = svg;
+        container.value!.querySelector('svg')!.style.minWidth =
+          container.value!.querySelector('svg')!.style.maxWidth;
+        container.value!.querySelector('svg')!.style.maxWidth = 'none';
         diagnostics.value = undefined;
       }
     });
@@ -117,8 +125,14 @@ onMounted(() => {
     <div class="col-5.5">
       <div id="output" ref="container"></div>
       <div class="d-grid">
-        <button @click="save" class="btn btn-primary" type="button">
-          <span :class="saving ? 'loader' : 'hidden'"></span> Save
+        <button id="save" @click="save" class="btn btn-primary" type="button">
+          <font-awesome-icon
+            class="mr-1"
+            icon="fa-solid fa-circle-notch"
+            spin
+            v-if="saving"
+          />
+          Save
         </button>
       </div>
     </div>
@@ -129,6 +143,11 @@ onMounted(() => {
 @import url('bootstrap/dist/css/bootstrap.min.css');
 
 :root {
+  --bs-gutter-x: 0;
+  --bs-gutter-y: 0;
+}
+
+.row {
   --bs-gutter-x: 0;
   --bs-gutter-y: 0;
 }
@@ -145,31 +164,18 @@ onMounted(() => {
   width: 45.83333%;
 }
 
-.loader {
-  box-sizing: content-box;
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-  vertical-align: middle;
-  border: 5px solid #fff;
-  border-top-color: #ff1e1e;
-  border-radius: 50%;
-  animation-name: rotate;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0);
-  }
-  to {
-    transform: rotate(100);
-  }
-}
-
 .hidden {
   display: none;
+}
+
+#output {
+  overflow: auto;
+  max-height: 90vh;
+}
+
+#save {
+  position: absolute;
+  bottom: 0;
+  width: 45.83333%;
 }
 </style>

@@ -1,4 +1,5 @@
 import ensureSelected from './helpers/ensureSelected';
+import diagrams from './data/diagrams.json';
 
 export function onInstall() {
   onOpen();
@@ -24,13 +25,21 @@ export function showSidebar() {
   DocumentApp.getUi().showSidebar(html);
 }
 
-export function newDiagram() {
-  let url =
-    'https://mermaid.ink/img/c2VxdWVuY2VEaWFncmFtIApBbGljZS0+PitKb2huOiBIZWxsbyBKb2huLCBob3cgYXJlIHlvdT8KQWxpY2UtPj4rSm9objogSm9obiwgY2FuIHlvdSBoZWFyIG1lPwpKb2huLS0+Pi1BbGljZTogSGkgQWxpY2UsIEkgY2FuIGhlYXIgeW91IQpKb2huLS0+Pi1BbGljZTogSSBmZWVsIGdyZWF0IQoK';
+export function newDiagram(type: keyof typeof diagrams = 'blank') {
+  let url = `https://mermaid.ink/img/${diagrams[type]}`;
   let blob = UrlFetchApp.fetch(url).getBlob();
-  DocumentApp.getActiveDocument()
-    .getCursor()
-    .insertInlineImage(blob)
+  let cursor = DocumentApp.getActiveDocument().getCursor();
+  if (cursor) {
+    cursor.insertInlineImage(blob).setLinkUrl(url);
+    return;
+  }
+  let selectedElement = DocumentApp.getActiveDocument()
+    .getSelection()
+    .getRangeElements()[0]
+    .getElement();
+  const index = selectedElement.getParent().getChildIndex(selectedElement);
+  (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
+    .insertInlineImage(index + 1, blob)
     .setLinkUrl(url);
 }
 
@@ -64,6 +73,7 @@ export function save(code: string) {
       .getRangeElements()[0]
       .getElement();
 
+    // TODO: Support pako over here
     const url = `https://mermaid.ink/img/${Utilities.base64Encode(code)}`;
     const index = selectedElement.getParent().getChildIndex(selectedElement);
     let blob = UrlFetchApp.fetch(url).getBlob();

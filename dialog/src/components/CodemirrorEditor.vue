@@ -22,13 +22,13 @@ watch(
   () => {
     if (props.diagnostics) {
       view.value!.dispatch(
-        setDiagnostics(view.value!.state as unknown as EditorState, [
+        setDiagnostics((view.value!.state as unknown) as EditorState, [
           props.diagnostics,
         ])
       );
     } else if (view.value) {
       view.value.dispatch(
-        setDiagnostics(view.value!.state as unknown as EditorState, [])
+        setDiagnostics((view.value!.state as unknown) as EditorState, [])
       );
     }
   }
@@ -60,7 +60,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="container" ref="container" style="height: 100%"></div>
+  <div id="container" ref="container" style="height: 100%;"></div>
 </template>
 
 <style>
