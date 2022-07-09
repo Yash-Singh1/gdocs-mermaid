@@ -83,13 +83,3 @@ export function save(code: string) {
     selectedElement.getParent().getChild(index).removeFromParent();
   }
 }
-
-export function deleteDiagram() {
-  if (ensureSelected('Select a Flowcast diagram to remove one')) {
-    DocumentApp.getActiveDocument()
-      .getSelection()
-      .getRangeElements()[0]
-      .getElement()
-      .removeFromParent();
-  }
-}

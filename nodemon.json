@@ -1,0 +1,11 @@
+{
+  "ignore": [
+    "dialog/dist/**/*",
+    "sidebar/dist/**/*",
+    "dist/**/*",
+    "public/appsscript.json",
+    "server/Code.js",
+    "node_modules/**/*",
+    "pnpm-lock.yaml"
+  ]
+}

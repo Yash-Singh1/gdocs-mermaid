@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, defineProps, defineEmits, watch } from 'vue';
 import { basicSetup } from 'codemirror';
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { Diagnostic, setDiagnostics } from '@codemirror/lint';
 import { EditorState, StateField, Text } from '@codemirror/state';
+import { indentWithTab } from '@codemirror/commands';
 
 const props = defineProps<{
   initialValue?: string;
@@ -22,13 +23,13 @@ watch(
   () => {
     if (props.diagnostics) {
       view.value!.dispatch(
-        setDiagnostics((view.value!.state as unknown) as EditorState, [
+        setDiagnostics(view.value!.state as unknown as EditorState, [
           props.diagnostics,
         ])
       );
     } else if (view.value) {
       view.value.dispatch(
-        setDiagnostics((view.value!.state as unknown) as EditorState, [])
+        setDiagnostics(view.value!.state as unknown as EditorState, [])
       );
     }
   }
@@ -45,12 +46,13 @@ onMounted(() => {
         return null;
       },
     });
-    // EditorView.updateListener.of(({ view }) => {
-    //   emit('change', view);
-    // });
     view.value = new EditorView({
       state: EditorState.create({
-        extensions: [basicSetup, listenChangesExtension],
+        extensions: [
+          basicSetup,
+          keymap.of([indentWithTab]),
+          listenChangesExtension,
+        ],
         doc: props.initialValue,
       }),
       parent: container.value!,
@@ -60,10 +62,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="container" ref="container" style="height: 100%;"></div>
+  <div id="container" ref="container"></div>
 </template>
 
 <style>
+#container {
+  height: 100%;
+}
+
 .cm-editor {
   height: 100%;
   border: 1px solid silver;

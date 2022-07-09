@@ -3,3 +3,7 @@ body,
 #app {
   height: 100%;
 }
+
+.container {
+  max-width: none !important;
+}
