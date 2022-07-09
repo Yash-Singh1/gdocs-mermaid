@@ -6,12 +6,11 @@ import mermaid from 'mermaid';
 import type { Diagnostic } from '@codemirror/lint';
 import type { Text } from '@codemirror/state';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faMaximize, faMinimize } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import svgPanZoom from 'svg-pan-zoom';
-import fullscreenIcon from './assets/icons8-fullscreen-48.png?inline';
 
-library.add(faCircleNotch);
+library.add(faCircleNotch, faMaximize, faMinimize);
 
 const props = defineProps<{
   code: string;
@@ -24,6 +23,7 @@ const saving = ref(false);
 const diagnostics = ref<Diagnostic | undefined>(undefined);
 const json = ref<string[] | null>(null);
 const panZoomInstance = ref<null | typeof svgPanZoom>(null);
+const fullscreen = ref(false);
 
 function save() {
   saving.value = true;
@@ -38,7 +38,7 @@ function save() {
 function calculate(lineNumber: number, columnNumber: number): number {
   let number = 0;
   json.value!.slice(0, lineNumber - 1).forEach((line) => {
-    number += line.length;
+    number += line.length + 1;
   });
   number += columnNumber;
   return number;
@@ -114,7 +114,6 @@ function refresh(newValue: string) {
         } else {
           alreadyLoaded = false;
         }
-        svg = `<img src="${fullscreenIcon}" id="fullscreen" />${svg}`;
         container.value!.innerHTML = svg;
         const svgEl = container.value!.querySelector('svg')!;
         svgEl.style.maxWidth = 'none';
@@ -154,6 +153,20 @@ function onChange(doc: Text) {
   refresh(doc.toString());
 }
 
+function toggleFullscreen() {
+  if (fullscreen.value) {
+    container.value!.classList.remove('fullscreen');
+  } else {
+    container.value!.classList.add('fullscreen');
+  }
+  if (panZoomInstance.value) {
+    panZoomInstance.value!.resize();
+    panZoomInstance.value!.center();
+    panZoomInstance.value!.fit();
+  }
+  fullscreen.value = !fullscreen.value;
+}
+
 onMounted(() => {
   nextTick(() => {
     refresh(code.value);
@@ -171,11 +184,16 @@ onMounted(() => {
     />
     <div class="col-0.5"></div>
     <div class="col-5.5">
+      <font-awesome-icon
+        :icon="`fa-solid ${fullscreen ? 'fa-minimize' : 'fa-maximize'}`"
+        @click="toggleFullscreen"
+        id="fullscreen"
+      />
       <div id="output" ref="container"></div>
-      <div class="d-grid">
+      <div class="d-grid save-btn">
         <button id="save" @click="save" class="btn btn-primary" type="button">
           <font-awesome-icon
-            class="mr-1"
+            class="mr-1 loader"
             icon="fa-solid fa-circle-notch"
             spin
             v-if="saving"
@@ -231,6 +249,22 @@ svg {
   padding: 2rem 0;
 }
 
+#output.fullscreen {
+  height: 100vh;
+  max-height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: white;
+  z-index: 5;
+}
+
+#output.fullscreen + .save-btn {
+  display: none !important;
+}
+
 #save {
   position: absolute;
   bottom: 0;
@@ -242,7 +276,12 @@ svg {
   right: 0.25rem;
   cursor: pointer;
   top: 0.25rem;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  z-index: 10;
+}
+
+.loader {
+  max-width: 1rem;
 }
 </style>
