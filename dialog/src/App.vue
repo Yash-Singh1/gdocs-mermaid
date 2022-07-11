@@ -6,7 +6,11 @@ import mermaid from 'mermaid';
 import type { Diagnostic } from '@codemirror/lint';
 import type { Text } from '@codemirror/state';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCircleNotch, faMaximize, faMinimize } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCircleNotch,
+  faMaximize,
+  faMinimize,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import svgPanZoom from 'svg-pan-zoom';
 
