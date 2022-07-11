@@ -60,7 +60,11 @@ export function editSelectedDiagram() {
       )
     ).getDataAsString();
     DocumentApp.getUi().showModalDialog(
-      htmlTemplate.evaluate().setTitle('Flowcast'),
+      htmlTemplate
+        .evaluate()
+        .setWidth(1237.5)
+        .setHeight(886.5)
+        .setTitle('Flowcast'),
       'Flowcast'
     );
   }
