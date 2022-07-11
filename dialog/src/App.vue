@@ -247,6 +247,8 @@ svg {
   max-width: 100%;
   width: 100%;
   padding: 2rem 0;
+  left: 50%;
+  top: 0;
 }
 
 #output.fullscreen {
@@ -259,6 +261,7 @@ svg {
   left: 0;
   background-color: white;
   z-index: 5;
+  transition: height 0.5s, width 0.5s, top 0.5s, left 0.5s;
 }
 
 #output.fullscreen + .save-btn {
