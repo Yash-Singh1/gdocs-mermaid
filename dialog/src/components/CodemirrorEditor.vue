@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, defineProps, defineEmits, watch } from 'vue';
+import { nextTick, onMounted, ref, defineProps, defineEmits, watch, provide } from 'vue';
 import { basicSetup } from 'codemirror';
 import { EditorView, keymap } from '@codemirror/view';
 import { Diagnostic, setDiagnostics } from '@codemirror/lint';
-import { EditorState, StateField, Text } from '@codemirror/state';
+import {
+  EditorState,
+  StateField,
+  Text,
+} from '@codemirror/state';
 import { indentWithTab } from '@codemirror/commands';
 
 const props = defineProps<{
@@ -34,6 +38,8 @@ watch(
     }
   }
 );
+
+provide('view', view.value);
 
 onMounted(() => {
   nextTick(() => {

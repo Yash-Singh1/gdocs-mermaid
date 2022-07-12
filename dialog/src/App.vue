@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, nextTick, onMounted, ref } from 'vue';
+import { defineProps, inject, nextTick, onMounted, ref } from 'vue';
 import unraw from './helpers/unraw';
 import CodemirrorEditor from './components/CodemirrorEditor.vue';
 import mermaid from 'mermaid';
@@ -13,6 +13,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import svgPanZoom from 'svg-pan-zoom';
+import { MenuButton, MenuItems, MenuItem, Menu } from '@headlessui/vue';
+import annyang from 'annyang';
+import type { EditorView } from 'codemirror';
+import type { TransactionSpec } from '@codemirror/state';
 
 library.add(faCircleNotch, faMaximize, faMinimize);
 
@@ -28,6 +32,8 @@ const diagnostics = ref<Diagnostic | undefined>(undefined);
 const json = ref<string[] | null>(null);
 const panZoomInstance = ref<null | typeof svgPanZoom>(null);
 const fullscreen = ref(false);
+
+const view = inject<null | EditorView>('view');
 
 function save() {
   saving.value = true;
@@ -77,30 +83,6 @@ mermaid.setParseErrorHandler(
   }
 );
 
-function fixControlsPositioning() {
-  // A bunch of magic math to fix the positioning of the controls.
-  const containerWidth = container.value!.offsetWidth;
-  console.log(containerWidth);
-  document.getElementById('svg-pan-zoom-controls')!.setAttribute(
-    'transform',
-    document
-      .getElementById('svg-pan-zoom-controls')!
-      .getAttribute('transform')!
-      .replace(/(translate\()(\d+)(\s)/, function (_match, p1, _p2, p3) {
-        return [
-          p1,
-          containerWidth -
-            182 *
-              0.75 *
-              0.4 /* Use internal scaling to find out exact width */ -
-            5 /* X Offset of control reset button */ -
-            8 /* Extra padding between border and controls */,
-          p3,
-        ].join('');
-      })
-  );
-}
-
 function refresh(newValue: string) {
   code.value = newValue;
   try {
@@ -135,7 +117,6 @@ function refresh(newValue: string) {
         });
         nextTick(() => {
           svgEl.style.width = '100%';
-          // fixControlsPositioning();
           if (!alreadyLoaded) {
             const interval = setInterval(() => {
               if (width !== container.value!.offsetWidth) {
@@ -171,6 +152,21 @@ function toggleFullscreen() {
   fullscreen.value = !fullscreen.value;
 }
 
+function voiceType() {
+  google.script.run.voiceType();
+  annyang.addCommands({
+    // @ts-ignore -- TODO: Contribute to @types/annyang string parameters and parsing keys
+    '*entity1 connects to *entity2': (entity1: string, entity2: string) => {
+      if (view) {
+        const transaction = view.state.replaceSelection(`${entity1} --> ${entity2}`);
+        const update = view.state.update(transaction);
+        view.update([update]);
+      }
+    },
+  });
+  annyang.start();
+}
+
 onMounted(() => {
   nextTick(() => {
     refresh(code.value);
@@ -179,23 +175,59 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="row">
-    <CodemirrorEditor
-      @change="onChange"
-      :initialValue="code"
-      :diagnostics="diagnostics"
-      class="col-6"
-    />
-    <div class="col-0.5"></div>
-    <div class="col-5.5">
+  <div class="row flex flex-wrap">
+    <div class="col-6 flex flex-col">
+      <div class="toolbar text-sm h-8">
+        <div class="position-relative h-4/5 mb-[1.6rem]">
+          <Menu as="div" class="relative">
+            <MenuButton class="btn mb-0 px-2 py-1" type="button">
+              Tools
+            </MenuButton>
+            <transition
+              enter-active-class="transition duration-100 ease-out"
+              enter-from-class="transform scale-95 opacity-0"
+              enter-to-class="transform scale-100 opacity-100"
+              leave-active-class="transition duration-75 ease-in"
+              leave-from-class="transform scale-100 opacity-100"
+              leave-to-class="transform scale-95 opacity-0"
+            >
+              <MenuItems
+                class="absolute left-0 mt-1 ml-1 w-max box-content origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+              >
+                <MenuItem>
+                  <button
+                    class="btn m-0 rounded-none text-left justify-start font-semibold pr-5"
+                    @click="voiceType"
+                  >
+                    Voice Typing
+                  </button>
+                </MenuItem>
+              </MenuItems>
+            </transition>
+          </Menu>
+        </div>
+      </div>
+      <CodemirrorEditor
+        @change="onChange"
+        :initialValue="code"
+        :diagnostics="diagnostics"
+      />
+    </div>
+    <div class="col-5.5 mt-8">
       <font-awesome-icon
         :icon="`fa-solid ${fullscreen ? 'fa-minimize' : 'fa-maximize'}`"
         @click="toggleFullscreen"
         id="fullscreen"
+        :class="fullscreen && 'less-top'"
       />
       <div id="output" ref="container"></div>
-      <div class="d-grid save-btn">
-        <button id="save" @click="save" class="btn btn-primary" type="button">
+      <div class="grid save-btn">
+        <button
+          id="save"
+          @click="save"
+          class="btn btn-large btn-blue"
+          type="button"
+        >
           <font-awesome-icon
             class="mr-1 loader"
             icon="fa-solid fa-circle-notch"
@@ -210,8 +242,6 @@ onMounted(() => {
 </template>
 
 <style>
-@import url('bootstrap/dist/css/bootstrap.min.css');
-
 #container {
   max-width: none !important;
 }
@@ -221,21 +251,16 @@ svg {
   height: 100% !important;
 }
 
-:root,
-.row {
-  --bs-gutter-x: 0;
-  --bs-gutter-y: 0;
-}
-
 .row {
   height: 100%;
 }
 
-.col-0\.5 {
-  width: 4.166667%;
+.col-6 {
+  width: 50%;
 }
 
 .col-5\.5 {
+  margin-left: 4.166667%;
   width: 45.83333%;
 }
 
@@ -253,6 +278,7 @@ svg {
   padding: 2rem 0;
   left: 50%;
   top: 0;
+  cursor: move;
 }
 
 #output.fullscreen {
@@ -282,7 +308,7 @@ svg {
   position: absolute;
   right: 0.25rem;
   cursor: pointer;
-  top: 0.25rem;
+  top: 2.25rem;
   width: 1.75rem !important;
   height: 1.75rem !important;
   z-index: 10;
@@ -290,5 +316,13 @@ svg {
 
 .loader {
   max-width: 1rem;
+}
+
+.cm-editor {
+  border-bottom-width: 2px;
+}
+
+.less-top {
+  top: 0.25rem;
 }
 </style>

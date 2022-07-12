@@ -1,3 +1,4 @@
 packages:
   - 'sidebar/'
   - 'dialog/'
+  - 'voice-type/'

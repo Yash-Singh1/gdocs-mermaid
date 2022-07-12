@@ -63,7 +63,7 @@ function refresh() {
 <template>
   <div class="d-grid gap-2" id="container" v-show="!templatePage">
     <Menu as="div" class="relative">
-      <MenuButton class="btn btn-blue mb-0" type="button" :disabled="inserting">
+      <MenuButton class="btn btn-large btn-blue mb-0" type="button" :disabled="inserting">
         <font-awesome-icon
           class="mr-1"
           :icon="
@@ -88,7 +88,7 @@ function refresh() {
         >
           <MenuItem>
             <button
-              class="btn m-0 rounded-none text-left justify-start font-semibold pr-5"
+              class="btn btn-large m-0 rounded-none text-left justify-start font-semibold pr-5"
               @click="insert('blank')"
             >
               Blank
@@ -96,7 +96,7 @@ function refresh() {
           </MenuItem>
           <MenuItem>
             <button
-              class="btn m-0 rounded-none text-left justify-start font-semibold pr-5"
+              class="btn btn-large m-0 rounded-none text-left justify-start font-semibold pr-5"
               @click="templatePage = true"
             >
               Template
@@ -106,7 +106,7 @@ function refresh() {
       </transition>
     </Menu>
     <button
-      class="btn btn-blue"
+      class="btn btn-large btn-blue"
       type="button"
       @click="edit"
       :disabled="editing"
@@ -119,7 +119,7 @@ function refresh() {
       Edit
     </button>
     <button
-      class="btn btn-blue"
+      class="btn btn-large btn-blue"
       type="button"
       @click="refresh"
       :disabled="refreshing"

@@ -1,16 +1,8 @@
 /// <reference types="vite/client" />
 
-import type { Annyang } from 'annyang';
-
 declare module '*.vue' {
   import type { DefineComponent } from 'vue';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
   const component: DefineComponent<{}, {}, any>;
   export default component;
-}
-
-// TODO: Contribute this to @types/annyang
-declare module 'annyang' {
-  const annyang: Annyang;
-  export default annyang;
 }

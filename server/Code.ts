@@ -87,3 +87,15 @@ export function save(code: string) {
     selectedElement.getParent().getChild(index).removeFromParent();
   }
 }
+
+export function voiceType() {
+  // let htmlTemplate = HtmlService.createTemplateFromFile('voice-type');
+  // DocumentApp.getUi().showModelessDialog(
+  //   htmlTemplate
+  //     .evaluate()
+  //     .setWidth(96)
+  //     .setHeight(128)
+  //     .setTitle('Voice Type'),
+  //   'Voice Type'
+  // );
+}

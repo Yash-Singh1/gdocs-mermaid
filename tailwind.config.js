@@ -13,12 +13,6 @@ module.exports = {
           padding: '.5rem 1rem',
           borderRadius: '.25rem',
           fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          marginTop: '1.25rem',
-          marginBottom: '1.25rem',
           '&:hover': {
             backgroundColor: '#ddd',
           },
@@ -28,6 +22,15 @@ module.exports = {
           '&:active': {
             backgroundColor: '#ccc',
           },
+          outline: 'none',
+        },
+        '.btn-large': {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          marginTop: '1.25rem',
+          marginBottom: '1.25rem',
         },
         '.btn-blue': {
           backgroundColor: '#0d6efd',

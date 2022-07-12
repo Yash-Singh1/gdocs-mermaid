@@ -1,0 +1,14 @@
+{
+  "name": "voice-type",
+  "private": true,
+  "description": "Voice Typing Modeless dialog",
+  "dependencies": {
+    "vite": "^2.9.13",
+    "vue": "^3.2.37"
+  },
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "vue-tsc --noEmit",
+    "build": "vite build"
+  }
+}

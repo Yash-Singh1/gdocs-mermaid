@@ -7,7 +7,7 @@
     </div>
     <div class="px-6 pb-2">
       <button
-        class="btn btn-blue mt-0 w-max"
+        class="btn btn-large btn-blue mt-0 w-max"
         @click="select"
         :disabled="inserting"
       >
