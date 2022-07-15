@@ -239,6 +239,9 @@ onMounted(() => {
       </div>
     </div>
   </div>
+  <div class="row">
+
+  </div>
 </template>
 
 <style>
@@ -271,8 +274,8 @@ svg {
 #output {
   overflow: hidden;
   border: 2px solid silver;
-  max-height: 90vh;
-  height: 90vh;
+  max-height: 90%;
+  height: 90%;
   max-width: 100%;
   width: 100%;
   padding: 2rem 0;
@@ -299,9 +302,7 @@ svg {
 }
 
 #save {
-  position: absolute;
-  bottom: 0;
-  width: 45.83333%;
+  width: 100%;
 }
 
 #fullscreen {
