@@ -7,7 +7,7 @@ import {
   faCircleNotch,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { ref, defineProps, provide } from 'vue';
+import { ref, provide } from 'vue';
 import { MenuButton, MenuItems, MenuItem, Menu } from '@headlessui/vue';
 import Template from './components/Template.vue';
 

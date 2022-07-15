@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, inject, nextTick, onMounted, ref } from 'vue';
+import { inject, nextTick, onMounted, ref } from 'vue';
 import unraw from './helpers/unraw';
 import CodemirrorEditor from './components/CodemirrorEditor.vue';
 import mermaid from 'mermaid';
@@ -7,18 +7,27 @@ import type { Diagnostic } from '@codemirror/lint';
 import type { Text } from '@codemirror/state';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+  faCircle,
   faCircleNotch,
   faMaximize,
+  faMicrophone,
   faMinimize,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import svgPanZoom from 'svg-pan-zoom';
 import { MenuButton, MenuItems, MenuItem, Menu } from '@headlessui/vue';
 import annyang from 'annyang';
 import type { EditorView } from 'codemirror';
-import type { TransactionSpec } from '@codemirror/state';
 
-library.add(faCircleNotch, faMaximize, faMinimize);
+library.add(
+  faCircleNotch,
+  faMaximize,
+  faMinimize,
+  faXmark,
+  faMicrophone,
+  faCircle
+);
 
 const props = defineProps<{
   code: string;
@@ -32,6 +41,8 @@ const diagnostics = ref<Diagnostic | undefined>(undefined);
 const json = ref<string[] | null>(null);
 const panZoomInstance = ref<null | typeof svgPanZoom>(null);
 const fullscreen = ref(false);
+const voiceTyping = ref(false);
+const voiceTyped = ref(false);
 
 const view = inject<null | EditorView>('view');
 
@@ -153,18 +164,32 @@ function toggleFullscreen() {
 }
 
 function voiceType() {
-  google.script.run.voiceType();
+  if (!annyang) {
+    throw new Error(
+      'Speech to text is not supported on your browser or device.'
+    );
+  }
   annyang.addCommands({
     // @ts-ignore -- TODO: Contribute to @types/annyang string parameters and parsing keys
     '*entity1 connects to *entity2': (entity1: string, entity2: string) => {
       if (view) {
-        const transaction = view.state.replaceSelection(`${entity1} --> ${entity2}`);
+        const transaction = view.state.replaceSelection(
+          `${entity1} --> ${entity2}`
+        );
         const update = view.state.update(transaction);
         view.update([update]);
       }
     },
   });
   annyang.start();
+  voiceTyping.value = true;
+  voiceTyped.value = true;
+}
+
+function closeVoiceType() {
+  voiceTyped.value = false;
+  voiceTyping.value = false;
+  annyang.abort();
 }
 
 onMounted(() => {
@@ -177,10 +202,13 @@ onMounted(() => {
 <template>
   <div class="row flex flex-wrap">
     <div class="col-6 flex flex-col">
-      <div class="toolbar text-sm h-8">
+      <div class="toolbar text-sm h-9">
         <div class="position-relative h-4/5 mb-[1.6rem]">
           <Menu as="div" class="relative">
-            <MenuButton class="btn mb-0 px-2 py-1" type="button">
+            <MenuButton
+              class="btn mb-0 px-2 py-1 border border-gray-400"
+              type="button"
+            >
               Tools
             </MenuButton>
             <transition
@@ -239,8 +267,17 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <div class="row">
-
+  <div class="row h-max relative border-2 border-gray-400 mt-2" v-if="voiceTyped" v-show="!fullscreen">
+    <font-awesome-icon
+      :icon="`fa-solid ${voiceTyping ? 'fa-circle' : 'fa-microphone'}`"
+      :class="voiceTyping && 'record-pulse text-red-500 p-0'"
+      class="icon-voice-toolbar"
+    />
+    <font-awesome-icon
+      icon="fa-solid fa-xmark"
+      class="close-voice"
+      @click="closeVoiceType"
+    />
   </div>
 </template>
 
@@ -278,7 +315,7 @@ svg {
   height: 90%;
   max-width: 100%;
   width: 100%;
-  padding: 2rem 0;
+  /* padding: 2rem 0; */
   left: 50%;
   top: 0;
   cursor: move;
@@ -319,11 +356,41 @@ svg {
   max-width: 1rem;
 }
 
-.cm-editor {
-  border-bottom-width: 2px;
+.less-top {
+  top: 0.25rem !important;
 }
 
-.less-top {
-  top: 0.25rem;
+.close-voice {
+  position: absolute;
+  right: 0.25rem;
+  cursor: pointer;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  margin: 8px;
+}
+
+.icon-voice-toolbar {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+.record-pulse {
+  animation: pulse 1s infinite ease-in-out;
+  border-radius: 50%;
+}
+
+@keyframes pulse {
+  0% {
+    border: 1px solid #ff000055;
+    margin: 7px;
+  }
+  50% {
+    border: 5px solid #ff000055;
+    margin: 3px;
+  }
+  100% {
+    border: 1px solid #ff000055;
+    margin: 7px;
+  }
 }
 </style>

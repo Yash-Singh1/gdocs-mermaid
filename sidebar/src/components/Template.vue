@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import flowchart from '../assets/flowchart.svg?raw';
-import { defineProps, inject } from 'vue';
+import { inject } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 const img = `data:image/svg+xml;base64,${btoa(flowchart)}`;

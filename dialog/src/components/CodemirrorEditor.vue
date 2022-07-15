@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, defineProps, defineEmits, watch, provide } from 'vue';
+import { nextTick, onMounted, ref, watch, provide } from 'vue';
 import { basicSetup } from 'codemirror';
 import { EditorView, keymap } from '@codemirror/view';
 import { Diagnostic, setDiagnostics } from '@codemirror/lint';
