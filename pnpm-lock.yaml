@@ -46,12 +46,11 @@ importers:
       '@fortawesome/vue-fontawesome': ^3.0.1
       '@fullhuman/postcss-purgecss': ^4.1.3
       '@headlessui/vue': ^1.6.5
-      '@types/annyang': ^2.6.2
       '@types/codemirror': ^5.60.5
       '@types/google.script.client-side': ^0.1.1
       '@types/mermaid': ^8.2.9
       '@types/uuid': ^8.3.4
-      annyang: ^2.6.1
+      '@types/webspeechapi': ^0.0.29
       autoprefixer: ^10.4.7
       codemirror: ^6.0.1
       mermaid: ^9.1.3
@@ -69,8 +68,7 @@ importers:
       '@fortawesome/free-solid-svg-icons': 6.1.1
       '@fortawesome/vue-fontawesome': 3.0.1_u4vq2zlnk6o5gih5o4cnqmjgea
       '@headlessui/vue': 1.6.5_vue@3.2.37
-      '@types/annyang': 2.6.2
-      annyang: 2.6.1
+      '@types/webspeechapi': 0.0.29
       autoprefixer: 10.4.7_postcss@8.4.14
       codemirror: 6.0.1
       mermaid: 9.1.3
@@ -388,10 +386,6 @@ packages:
   /@tsconfig/node16/1.0.3:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
 
-  /@types/annyang/2.6.2:
-    resolution: {integrity: sha512-h+iMSThzFNRbMVb3FZEEoWnprtIiccpt65YcQwpkQlM8JsplmnONYsgATB1Tkko/dbwu1GyfNh1TN2CeGJ797w==}
-    dev: false
-
   /@types/cacheable-request/6.0.2:
     resolution: {integrity: sha512-B3xVo+dlKM6nnKTcmm5ZtY/OL8bOAOd2Olee9M1zft65ox50OzjEHW91sDiU9j6cvW8Ejg1/Qkf4xd2kugApUA==}
     dependencies:
@@ -463,6 +457,11 @@ packages:
   /@types/uuid/8.3.4:
     resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
     dev: true
+
+  /@types/webspeechapi/0.0.29:
+    resolution: {integrity: sha512-AYEhqEJLdR08YPBOwYa73IHTiGU4DdngbKbtZdW+bzuM7s8LzKBed0Fwgl/a3oMqMY227qOT+3Lpr5A0WSmm+A==}
+    deprecated: Now provided by --lib dom
+    dev: false
 
   /@vitejs/plugin-vue/2.3.3_vite@2.9.13+vue@3.2.37:
     resolution: {integrity: sha512-SmQLDyhz+6lGJhPELsBdzXGc+AcaT8stgkbiTFGpXPe8Tl1tJaBw1A6pxDqDuRsVkD8uscrkx3hA7QDOoKYtyw==}
@@ -641,10 +640,6 @@ packages:
       clean-stack: 4.2.0
       indent-string: 5.0.0
     dev: true
-
-  /annyang/2.6.1:
-    resolution: {integrity: sha512-KfO6FVFmE7H7epXgAWRoGITShVqsDs6zLKuTxDiJHZmAVnpKeUAKiMUIr7hDXbNUOqRIB3RVTQQd/Yaf4ULauw==}
-    dev: false
 
   /ansi-escapes/4.3.2:
     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}

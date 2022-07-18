@@ -1,7 +1,5 @@
 /// <reference types="vite/client" />
 
-import type { Annyang } from 'annyang';
-
 declare module '*.vue' {
   import type { DefineComponent } from 'vue';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types
@@ -9,8 +7,14 @@ declare module '*.vue' {
   export default component;
 }
 
-// TODO: Contribute this to @types/annyang
-declare module 'annyang' {
-  const annyang: Annyang;
-  export default annyang;
+declare var mozSpeechRecognition: undefined | SpeechRecognitionStatic;
+declare var msSpeechRecognition: undefined | SpeechRecognitionStatic;
+declare var oSpeechRecognition: undefined | SpeechRecognitionStatic;
+
+declare global {
+  interface Window {
+    mozSpeechRecognition: typeof mozSpeechRecognition;
+    msSpeechRecognition: typeof msSpeechRecognition;
+    oSpeechRecognition: typeof oSpeechRecognition;
+  }
 }
