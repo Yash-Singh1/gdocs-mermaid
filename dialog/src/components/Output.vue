@@ -37,6 +37,11 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
+.col-5\.5 {
+  margin-left: 4.166667%;
+  width: 45.83333%;
+}
+
 #output {
   overflow: hidden;
   border: 2px solid silver;

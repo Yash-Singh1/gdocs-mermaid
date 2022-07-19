@@ -10,18 +10,17 @@ import Menu from './components/Menu.vue';
 import Modal from './components/Modal.vue';
 import calculateIndexForPosition from './helpers/calculateIndexForPosition';
 import Output from './components/Output.vue';
+import SpeechRecognition from './helpers/vendoredSpeechRecognition';
+import commands from './commands';
+import findDiagramType from './helpers/findDiagramType';
+import findAliasDiagram from './helpers/findAliasDiagram';
+import resetPanZoomInstance from './helpers/resetPanZoomInstance';
+import type { EditorView } from 'codemirror';
 
 const props = defineProps<{
   code: string;
   mermaid?: any;
 }>();
-
-const SpeechRecognition =
-  window.SpeechRecognition ||
-  window.webkitSpeechRecognition ||
-  window.mozSpeechRecognition ||
-  window.msSpeechRecognition ||
-  window.oSpeechRecognition;
 
 const code = ref(props.code);
 const saving = ref(false);
@@ -58,19 +57,23 @@ const json = ref<string[] | null>(null);
 // @ts-ignore - TODO: Contribute this to @types/mermaid
 mermaid.setParseErrorHandler(
   (str: MermaidError['str'], hash: MermaidError['hash']) => {
+    let from = calculateIndexForPosition(
+      hash.loc.first_line,
+      hash.loc.first_column,
+      json.value!
+    );
     diagnostics.value = {
       severity: 'error',
       source: 'mermaid.parse',
       message: str,
-      from: calculateIndexForPosition(
-        hash.loc.first_line,
-        hash.loc.first_column,
-        json.value!
-      ),
-      to: calculateIndexForPosition(
-        hash.loc.last_line,
-        hash.loc.last_column,
-        json.value!
+      from,
+      to: Math.max(
+        calculateIndexForPosition(
+          hash.loc.last_line,
+          hash.loc.last_column,
+          json.value!
+        ),
+        from
       ),
     };
   }
@@ -80,16 +83,15 @@ const panZoomInstance = ref<null | typeof svgPanZoom>(null);
 
 function refresh(newValue: string) {
   code.value = newValue;
-  try {
-    mermaid.parse(code.value);
-  } catch (mermaidError) {
+  // TODO: Contribute boolean return value to @types/mermaid
+  if (!mermaid.parse(code.value)) {
     return;
   }
   mermaid.initialize(props.mermaid || { theme: 'default' });
   try {
     mermaid.render('diagram', code.value, (svg) => {
       if (svg.length > 0) {
-        let alreadyLoaded = true;
+        let alreadyLoaded = false;
         if (panZoomInstance.value) {
           panZoomInstance.value.destroy();
         } else {
@@ -112,16 +114,13 @@ function refresh(newValue: string) {
         });
         nextTick(() => {
           svgEl.style.width = '100%';
-          if (!alreadyLoaded) {
-            const interval = setInterval(() => {
-              if (width !== document.getElementById('output')!.offsetWidth) {
-                panZoomInstance.value!.resize();
-                panZoomInstance.value!.center();
-                panZoomInstance.value!.fit();
-                clearInterval(interval);
-              }
-            }, 50);
-          }
+          resetPanZoomInstance(panZoomInstance.value);
+          const interval = setInterval(() => {
+            if (width !== document.getElementById('output')!.offsetWidth) {
+              resetPanZoomInstance(panZoomInstance.value);
+              clearInterval(interval);
+            }
+          }, 50);
         });
       }
     });
@@ -142,9 +141,7 @@ function toggleFullscreen() {
     document.getElementById('output')!.classList.add('fullscreen');
   }
   if (panZoomInstance.value) {
-    panZoomInstance.value!.resize();
-    panZoomInstance.value!.center();
-    panZoomInstance.value!.fit();
+    resetPanZoomInstance(panZoomInstance.value);
   }
   fullscreen.value = !fullscreen.value;
   closeVoiceType();
@@ -157,7 +154,7 @@ function tool(tool: string) {
   }
 }
 
-const SPEECH_RECOGNITION_ALTERNATIVES = 5;
+const SPEECH_RECOGNITION_ALTERNATIVES = 10;
 const replaceSelection = ref<string>('');
 const voiceTyping = ref(false);
 const voiceTyped = ref(false);
@@ -170,44 +167,104 @@ function voiceType() {
       'Speech to text is not supported on your browser or device.'
     );
   }
+
   recognitionFailure.value = '';
   if (recognition.value) {
-    voiceTyping.value = true;
-    return;
+    recognition.value.abort();
+    recognition.value = null;
   }
   recognition.value = new SpeechRecognition();
-  recognition.value.continuous = false;
   recognition.value.lang = 'en-US';
   recognition.value.interimResults = false;
   recognition.value.maxAlternatives = SPEECH_RECOGNITION_ALTERNATIVES;
   recognition.value.continuous = true;
-  recognition.value.onerror = (event) => {
-    throw event;
-  };
+
+  let voiceBuffer = '';
+  const newlineReg = /n(ew|u)[\s-]*line\.?$/i;
   recognition.value.onresult = (event) => {
     if (voiceTyping.value === true) {
       recognitionFailure.value = '';
       const results = event.results[event.resultIndex];
-      let answer: RegExpExecArray | undefined;
+      let answer: SpeechRecognitionAlternative | null = null;
       let answerConfidence = -1;
-      for (let i = 0; i < SPEECH_RECOGNITION_ALTERNATIVES; ++i) {
-        const result = results[i];
+      let newlineAns = false;
+      let newlineStr: string | undefined;
+      let newlineConf = 0.5;
+      for (let i = 0; i < results.length; i++) {
+        let result = results[i];
         if (!result) {
           continue;
         }
-        console.log(result.confidence, result.transcript);
-        const connectable = /^\s*(.*?)\s+connects(\s+to)?\s+(.*?)\s*$/;
-        let currentAns = connectable.exec(result.transcript);
-        if (currentAns && result.confidence > answerConfidence) {
-          answer = currentAns;
+        result = {
+          confidence: result.confidence,
+          transcript: result.transcript.trim(),
+        };
+        console.log(result.confidence, result.transcript, voiceBuffer);
+        if (
+          result.confidence > newlineConf &&
+          newlineReg.test(result.transcript)
+        ) {
+          newlineAns = true;
+          newlineStr = result.transcript;
+          newlineConf = result.confidence;
+        }
+        if (result.confidence > answerConfidence) {
+          answer = result;
           answerConfidence = result.confidence;
         }
       }
-      if (answer && answer.length > 3) {
-        replaceSelection.value = `${answer![1]} --> ${answer![3]}`;
+      if (answer && (newlineAns || newlineReg.test(answer.transcript))) {
+        if (!newlineReg.test(answer.transcript)) {
+          answer = { transcript: newlineStr!, confidence: -1 };
+        }
+        voiceBuffer += ' ' + answer.transcript.replace(newlineReg, '');
+        voiceBuffer = voiceBuffer.trim();
+        const diagramType = findAliasDiagram(findDiagramType(json.value || []));
+        if (diagramType && typeof commands[diagramType] !== 'undefined') {
+          const diagramCommands = commands[diagramType];
+          for (const command in diagramCommands) {
+            if (
+              !diagramCommands[command].validate ||
+              diagramCommands[command].validate!(voiceBuffer)
+            ) {
+              let match = diagramCommands[command].match.exec(voiceBuffer);
+              if (match) {
+                if (diagramCommands[command].cleanMatch)
+                  match = diagramCommands[command].cleanMatch!(match);
+                replaceSelection.value =
+                  diagramCommands[command].manipulate(match) + '\n';
+                voiceBuffer = '';
+                return;
+              }
+            }
+          }
+          replaceSelection.value = `%% ${voiceBuffer}\n`;
+        } else {
+          for (const command in commands['default']) {
+            if (
+              !commands['default'][command].validate ||
+              commands['default'][command].validate!(voiceBuffer)
+            ) {
+              let match = commands['default'][command].match.exec(voiceBuffer);
+              if (match) {
+                if (commands['default'][command].cleanMatch)
+                  match = commands['default'][command].cleanMatch!(match);
+                replaceSelection.value =
+                  commands['default'][command].manipulate(match) + '\n';
+                voiceBuffer = '';
+                return;
+              }
+            }
+          }
+          replaceSelection.value = voiceBuffer + '\n';
+        }
+        voiceBuffer = '';
+      } else if (answer) {
+        voiceBuffer += answer.transcript;
       }
     }
   };
+
   recognition.value.onend = (event) => {
     if (voiceTyping.value === true) {
       event.preventDefault();
@@ -221,27 +278,37 @@ function voiceType() {
   recognition.value.start();
   voiceTyping.value = true;
   voiceTyped.value = true;
+
+  // TODO: Figure out why can't focus when voice typing is initialized (probably due to rerender?).
+  nextTick(() => {
+    if (codemirrorEditor.value) {
+      codemirrorEditor.value.view.focus();
+    }
+  });
 }
 
 function closeVoiceType() {
   voiceTyped.value = false;
   voiceTyping.value = false;
-}
-
-function startVoiceType() {
-  voiceTyping.value = true;
-  if (recognition.value) {
-    recognition.value.start();
-  }
+  recognition.value!.abort();
 }
 
 function pauseVoiceType() {
   voiceTyping.value = false;
+  recognition.value!.abort();
 }
+
+const codemirrorEditor = ref<{ view: EditorView } | null>(null);
 
 onMounted(() => {
   nextTick(() => {
     refresh(code.value);
+    const interval = setInterval(() => {
+      if (codemirrorEditor.value) {
+        clearInterval(interval);
+        json.value = codemirrorEditor.value.view.state.doc.toJSON();
+      }
+    }, 100);
   });
 });
 </script>
@@ -263,6 +330,8 @@ onMounted(() => {
         :initialValue="code"
         :diagnostics="diagnostics"
         :replaceSelection="replaceSelection"
+        ref="codemirrorEditor"
+        :style="{ borderBottomWidth: !voiceTyping && '2px' }"
       />
     </div>
     <Output
@@ -273,7 +342,7 @@ onMounted(() => {
     />
   </div>
   <div
-    class="row h-max relative border-2 border-gray-400 mt-2"
+    class="row h-max relative border-2 border-b-[3px] border-gray-400 mt-2"
     v-if="voiceTyped"
     v-show="!fullscreen"
   >
@@ -281,7 +350,7 @@ onMounted(() => {
       :icon="voiceTyping ? 'circle' : 'microphone'"
       :class="voiceTyping && 'record-pulse text-red-500 p-0'"
       class="icon-voice-toolbar cursor-pointer"
-      @click="voiceTyping ? pauseVoiceType() : startVoiceType()"
+      @click="voiceTyping ? pauseVoiceType() : voiceType()"
     />
     <FontAwesomeSolid
       icon="xmark"
@@ -313,11 +382,6 @@ svg {
 
 .col-6 {
   width: 50%;
-}
-
-.col-5\.5 {
-  margin-left: 4.166667%;
-  width: 45.83333%;
 }
 
 .hidden {

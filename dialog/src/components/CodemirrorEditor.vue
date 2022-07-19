@@ -23,7 +23,9 @@ watch(
   () => props.replaceSelection,
   () => {
     if (view && props.replaceSelection && props.replaceSelection.length > 0) {
-      view.value!.dispatch(view.value!.state.replaceSelection(props.replaceSelection));
+      view.value!.dispatch(
+        view.value!.state.replaceSelection(props.replaceSelection)
+      );
     }
   }
 );
@@ -44,6 +46,10 @@ watch(
     }
   }
 );
+
+defineExpose({
+  view,
+});
 
 onMounted(() => {
   nextTick(() => {
@@ -67,6 +73,7 @@ onMounted(() => {
       }),
       parent: container.value!,
     });
+    view.value.focus();
   });
 });
 </script>

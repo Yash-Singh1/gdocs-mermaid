@@ -16,6 +16,6 @@
   "ts-node": {
     "transpileOnly": true
   },
-  "include": ["src/*.ts", "**/*.d.ts", "**/*.tsx", "**/*.vue"],
+  "include": ["src/**/*.ts", "**/*.d.ts", "**/*.tsx", "**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
