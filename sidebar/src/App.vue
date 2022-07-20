@@ -11,7 +11,7 @@ import { ref, provide } from 'vue';
 import { MenuButton, MenuItems, MenuItem, Menu } from '@headlessui/vue';
 import Template from './components/Template.vue';
 
-const props = defineProps<{ reduced: boolean }>();
+const props = defineProps<{ reduced: boolean; templatePage: boolean }>();
 
 library.add(faPlus, faPencil, faArrowsRotate, faCircleNotch);
 
@@ -19,7 +19,7 @@ let inserting = ref(false);
 let insertType = ref('');
 let editing = ref(false);
 let refreshing = ref(false);
-let templatePage = ref(false);
+let templatePage = ref(props.templatePage);
 
 provide('inserting', inserting);
 provide('insertType', insertType);
@@ -63,7 +63,11 @@ function refresh() {
 <template>
   <div class="d-grid gap-2" id="container" v-show="!templatePage">
     <Menu as="div" class="relative">
-      <MenuButton class="btn btn-large btn-blue mb-0" type="button" :disabled="inserting">
+      <MenuButton
+        class="btn btn-large btn-blue mb-0"
+        type="button"
+        :disabled="inserting"
+      >
         <font-awesome-icon
           class="mr-1"
           :icon="

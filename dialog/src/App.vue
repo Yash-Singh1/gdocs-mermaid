@@ -180,7 +180,7 @@ function voiceType() {
   recognition.value.continuous = true;
 
   let voiceBuffer = '';
-  const newlineReg = /n(ew|u)[\s-]*line\.?$/i;
+  const newlineReg = /k?n(ew|u)[\s-]*li(ne|on)\.?$/i;
   recognition.value.onresult = (event) => {
     if (voiceTyping.value === true) {
       recognitionFailure.value = '';

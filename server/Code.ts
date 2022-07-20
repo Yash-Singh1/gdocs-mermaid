@@ -10,19 +10,32 @@ export function onOpen() {
   // This is a feature present in Google Docs Addons for security purposes
   DocumentApp.getUi()
     .createAddonMenu()
-    .addItem('New', 'newDiagram')
+    .addSubMenu(
+      DocumentApp.getUi()
+        .createMenu('New')
+        .addItem('Blank', 'newDiagram')
+        .addItem('Template', 'showTemplates')
+    )
     .addItem('Edit Selected', 'editSelectedDiagram')
     .addSeparator()
     .addItem('Open in Sidebar', 'showSidebar')
     .addToUi();
 }
 
-export function showSidebar() {
-  let html = HtmlService.createTemplateFromFile('sidebar')
-    .evaluate()
-    .setTitle('Flowcast');
+export function showTemplates() {
+  showSidebar(true);
+}
 
-  DocumentApp.getUi().showSidebar(html);
+export function showSidebar(template: boolean = false) {
+  let html = HtmlService.createTemplateFromFile('sidebar');
+
+  if (template) {
+    html.template = 'true';
+  } else {
+    html.template = 'false';
+  }
+
+  DocumentApp.getUi().showSidebar(html.evaluate().setTitle('Flowcast'));
 }
 
 export function newDiagram(type: keyof typeof diagrams = 'blank') {
@@ -59,11 +72,11 @@ export function editSelectedDiagram() {
         Utilities.Charset.UTF_8
       )
     ).getDataAsString();
+    let evaluated = htmlTemplate.evaluate();
     DocumentApp.getUi().showModalDialog(
-      htmlTemplate
-        .evaluate()
-        .setWidth(1237.5)
-        .setHeight(886.5)
+      evaluated
+        .setWidth(evaluated.getWidth() * 2.25)
+        .setHeight(evaluated.getHeight() * 2.25)
         .setTitle('Flowcast'),
       'Flowcast'
     );
