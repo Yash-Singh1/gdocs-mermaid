@@ -1,0 +1,8 @@
+{
+  "name": "shared",
+  "private": true,
+  "description": "Shared code between UI packages and server",
+  "peerDependencies": {
+    "@fortawesome/vue-fontawesome": "*"
+  }
+}

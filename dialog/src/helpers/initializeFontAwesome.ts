@@ -6,6 +6,7 @@ import {
   faMicrophone,
   faMinimize,
   faXmark,
+  faFileImport,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -14,5 +15,6 @@ library.add(
   faMinimize,
   faXmark,
   faMicrophone,
-  faCircle
+  faCircle,
+  faFileImport
 );

@@ -4,9 +4,8 @@ import CodemirrorEditor from './components/CodemirrorEditor.vue';
 import mermaid from 'mermaid';
 import type { Diagnostic } from '@codemirror/lint';
 import { Text } from '@codemirror/state';
-import FontAwesomeSolid from './components/FontAwesomeSolid.vue';
+import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
 import svgPanZoom from 'svg-pan-zoom';
-import Menu from './components/Menu.vue';
 import Modal from './components/Modal.vue';
 import calculateIndexForPosition from './helpers/calculateIndexForPosition';
 import Output from './components/Output.vue';
@@ -16,6 +15,7 @@ import findDiagramType from './helpers/findDiagramType';
 import findAliasDiagram from './helpers/findAliasDiagram';
 import resetPanZoomInstance from './helpers/resetPanZoomInstance';
 import type { EditorView } from 'codemirror';
+import FontAwesomeSolid1 from 'shared/components/FontAwesomeSolid.vue';
 
 const props = defineProps<{
   code: string;
@@ -180,8 +180,8 @@ function voiceType() {
   recognition.value.continuous = true;
 
   let voiceBuffer = '';
-  const newlineReg = /k?n(ew|u)[\s-]*li(ne|on)\.?$/i;
-  recognition.value.onresult = (event) => {
+  const newlineReg = /(k?ne?[wu][\s-]*lio?ne?\.?)/gi;
+  recognition.value.onresult = async (event) => {
     if (voiceTyping.value === true) {
       recognitionFailure.value = '';
       const results = event.results[event.resultIndex];
@@ -215,48 +215,60 @@ function voiceType() {
       }
       if (answer && (newlineAns || newlineReg.test(answer.transcript))) {
         if (!newlineReg.test(answer.transcript)) {
-          answer = { transcript: newlineStr!, confidence: -1 };
+          answer = { transcript: newlineStr!, confidence: NaN };
         }
-        voiceBuffer += ' ' + answer.transcript.replace(newlineReg, '');
-        voiceBuffer = voiceBuffer.trim();
-        const diagramType = findAliasDiagram(findDiagramType(json.value || []));
-        if (diagramType && typeof commands[diagramType] !== 'undefined') {
-          const diagramCommands = commands[diagramType];
-          for (const command in diagramCommands) {
-            if (
-              !diagramCommands[command].validate ||
-              diagramCommands[command].validate!(voiceBuffer)
-            ) {
-              let match = diagramCommands[command].match.exec(voiceBuffer);
-              if (match) {
-                if (diagramCommands[command].cleanMatch)
-                  match = diagramCommands[command].cleanMatch!(match);
-                replaceSelection.value =
-                  diagramCommands[command].manipulate(match) + '\n';
-                voiceBuffer = '';
-                return;
+        let partsToProcess = [
+          voiceBuffer + ' ' + answer.transcript.split(newlineReg)[0],
+          ...answer.transcript.split(newlineReg).slice(1),
+        ];
+        processLoop: for (let processingPart of partsToProcess) {
+          processingPart = processingPart.trim();
+          if (newlineReg.test(processingPart) || processingPart.length === 0) {
+            continue processLoop;
+          }
+          // Wait for the next tick to prevent batch updates
+          await nextTick();
+          const diagramType = findAliasDiagram(
+            findDiagramType(json.value || [])
+          );
+          if (diagramType && typeof commands[diagramType] !== 'undefined') {
+            const diagramCommands = commands[diagramType];
+            for (const command in diagramCommands) {
+              if (
+                !diagramCommands[command].validate ||
+                diagramCommands[command].validate!(processingPart)
+              ) {
+                let match = diagramCommands[command].match.exec(processingPart);
+                if (match) {
+                  if (diagramCommands[command].cleanMatch) {
+                    match = diagramCommands[command].cleanMatch!(match);
+                  }
+                  replaceSelection.value =
+                    diagramCommands[command].manipulate(match) + '\n';
+                  continue processLoop;
+                }
               }
             }
-          }
-          replaceSelection.value = `%% ${voiceBuffer}\n`;
-        } else {
-          for (const command in commands['default']) {
-            if (
-              !commands['default'][command].validate ||
-              commands['default'][command].validate!(voiceBuffer)
-            ) {
-              let match = commands['default'][command].match.exec(voiceBuffer);
-              if (match) {
-                if (commands['default'][command].cleanMatch)
-                  match = commands['default'][command].cleanMatch!(match);
-                replaceSelection.value =
-                  commands['default'][command].manipulate(match) + '\n';
-                voiceBuffer = '';
-                return;
+            replaceSelection.value = `%% ${processingPart}\n`;
+          } else {
+            for (const command in commands['default']) {
+              if (
+                !commands['default'][command].validate ||
+                commands['default'][command].validate!(processingPart)
+              ) {
+                let match =
+                  commands['default'][command].match.exec(processingPart);
+                if (match) {
+                  if (commands['default'][command].cleanMatch)
+                    match = commands['default'][command].cleanMatch!(match);
+                  replaceSelection.value =
+                    commands['default'][command].manipulate(match) + '\n';
+                  continue processLoop;
+                }
               }
             }
+            replaceSelection.value = processingPart + '\n';
           }
-          replaceSelection.value = voiceBuffer + '\n';
         }
         voiceBuffer = '';
       } else if (answer) {
@@ -298,6 +310,10 @@ function pauseVoiceType() {
   recognition.value!.abort();
 }
 
+function replaceWithTemplate() {
+  google.script.run.showTemplating(/* attachTo */ true);
+}
+
 const codemirrorEditor = ref<{ view: EditorView } | null>(null);
 
 onMounted(() => {
@@ -317,11 +333,17 @@ onMounted(() => {
   <div class="row flex flex-wrap">
     <div class="col-6 flex flex-col">
       <div class="toolbar text-sm h-9">
-        <div class="position-relative h-4/5 mb-[1.6rem]">
-          <Menu
-            name="Tools"
-            :items="[{ name: 'Voice Typing', id: 'voiceType' }]"
-            @click="tool"
+        <div class="position-relative h-full border border-silver border-b-0">
+          <FontAwesomeSolid
+            :icon="voiceTyping ? 'circle' : 'microphone'"
+            :class="voiceTyping && 'record-pulse text-red-500 p-0'"
+            class="icon-toolbar cursor-pointer"
+            @click="voiceTyping ? pauseVoiceType() : voiceType()"
+          />
+          <FontAwesomeSolid
+            icon="file-import"
+            class="p-0 cursor-pointer icon-toolbar"
+            @click="replaceWithTemplate()"
           />
         </div>
       </div>
@@ -331,7 +353,6 @@ onMounted(() => {
         :diagnostics="diagnostics"
         :replaceSelection="replaceSelection"
         ref="codemirrorEditor"
-        :style="{ borderBottomWidth: !voiceTyping && '2px' }"
       />
     </div>
     <Output
@@ -339,23 +360,6 @@ onMounted(() => {
       :saving="saving"
       @save="save"
       @toggleFullscreen="toggleFullscreen"
-    />
-  </div>
-  <div
-    class="row h-max relative border-2 border-b-[3px] border-gray-400 mt-2"
-    v-if="voiceTyped"
-    v-show="!fullscreen"
-  >
-    <FontAwesomeSolid
-      :icon="voiceTyping ? 'circle' : 'microphone'"
-      :class="voiceTyping && 'record-pulse text-red-500 p-0'"
-      class="icon-voice-toolbar cursor-pointer"
-      @click="voiceTyping ? pauseVoiceType() : voiceType()"
-    />
-    <FontAwesomeSolid
-      icon="xmark"
-      class="close-voice"
-      @click="closeVoiceType"
     />
   </div>
   <Teleport v-if="recognitionFailure != ''" to="#modal">
@@ -397,7 +401,7 @@ svg {
   margin: 8px;
 }
 
-.icon-voice-toolbar {
+.icon-toolbar {
   width: 1.25rem !important;
   height: 1.25rem !important;
   margin: 8px;

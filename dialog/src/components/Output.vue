@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
+
+defineProps<{ fullscreen: boolean; saving: boolean }>();
+const emit = defineEmits<{
+  (e: 'toggleFullscreen'): void;
+  (e: 'save'): void;
+}>();
+</script>
+
 <template>
   <div class="col-5.5 mt-8">
     <FontAwesomeSolid
@@ -25,16 +35,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import FontAwesomeSolid from './FontAwesomeSolid.vue';
-
-defineProps<{ fullscreen: boolean; saving: boolean }>();
-const emit = defineEmits<{
-  (e: 'toggleFullscreen'): void;
-  (e: 'save'): void;
-}>();
-</script>
 
 <style scoped>
 .col-5\.5 {

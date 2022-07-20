@@ -14,7 +14,7 @@ export function onOpen() {
       DocumentApp.getUi()
         .createMenu('New')
         .addItem('Blank', 'newDiagram')
-        .addItem('Template', 'showTemplates')
+        .addItem('Template', 'showTemplating')
     )
     .addItem('Edit Selected', 'editSelectedDiagram')
     .addSeparator()
@@ -22,20 +22,12 @@ export function onOpen() {
     .addToUi();
 }
 
-export function showTemplates() {
-  showSidebar(true);
-}
-
-export function showSidebar(template: boolean = false) {
-  let html = HtmlService.createTemplateFromFile('sidebar');
-
-  if (template) {
-    html.template = 'true';
-  } else {
-    html.template = 'false';
-  }
-
-  DocumentApp.getUi().showSidebar(html.evaluate().setTitle('Flowcast'));
+export function showSidebar() {
+  DocumentApp.getUi().showSidebar(
+    HtmlService.createTemplateFromFile('sidebar')
+      .evaluate()
+      .setTitle('Flowcast')
+  );
 }
 
 export function newDiagram(type: keyof typeof diagrams = 'blank') {
@@ -46,6 +38,7 @@ export function newDiagram(type: keyof typeof diagrams = 'blank') {
     cursor.insertInlineImage(blob).setLinkUrl(url);
     return;
   }
+  // TODO: Look into handling more fallbacks, e.g. no selection
   let selectedElement = DocumentApp.getActiveDocument()
     .getSelection()
     .getRangeElements()[0]
@@ -54,6 +47,23 @@ export function newDiagram(type: keyof typeof diagrams = 'blank') {
   (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
     .insertInlineImage(index + 1, blob)
     .setLinkUrl(url);
+}
+
+export function applyTemplate(type: keyof typeof diagrams) {
+  if (ensureSelected('Select a Flowcast diagram to edit one')) {
+    let selectedElement = DocumentApp.getActiveDocument()
+      .getSelection()
+      .getRangeElements()[0]
+      .getElement();
+
+    const url = `https://mermaid.ink/img/${diagrams[type]}`;
+    const index = selectedElement.getParent().getChildIndex(selectedElement);
+    let blob = UrlFetchApp.fetch(url).getBlob();
+    (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
+      .insertInlineImage(index + 1, blob)
+      .setLinkUrl(url);
+    selectedElement.getParent().getChild(index).removeFromParent();
+  }
 }
 
 export function editSelectedDiagram() {
@@ -75,8 +85,8 @@ export function editSelectedDiagram() {
     let evaluated = htmlTemplate.evaluate();
     DocumentApp.getUi().showModalDialog(
       evaluated
-        .setWidth(evaluated.getWidth() * 2.25)
-        .setHeight(evaluated.getHeight() * 2.25)
+        .setWidth(1237.5)
+        .setHeight(886.5)
         .setTitle('Flowcast'),
       'Flowcast'
     );
@@ -101,14 +111,21 @@ export function save(code: string) {
   }
 }
 
-export function voiceType() {
-  // let htmlTemplate = HtmlService.createTemplateFromFile('voice-type');
-  // DocumentApp.getUi().showModelessDialog(
-  //   htmlTemplate
-  //     .evaluate()
-  //     .setWidth(96)
-  //     .setHeight(128)
-  //     .setTitle('Voice Type'),
-  //   'Voice Type'
-  // );
+export function showTemplating(attachTo: boolean = false) {
+  let htmlTemplate = HtmlService.createTemplateFromFile('template-page');
+
+  if (attachTo === true) {
+    htmlTemplate.attachTo = 'true';
+  } else {
+    htmlTemplate.attachTo = 'false';
+  }
+
+  let evaluated = htmlTemplate.evaluate();
+  DocumentApp.getUi().showModalDialog(
+    evaluated
+      .setWidth(1237.5)
+      .setHeight(886.5)
+      .setTitle('Flowcast Templates'),
+    'Flowcast Templates'
+  );
 }

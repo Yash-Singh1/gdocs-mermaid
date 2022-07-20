@@ -4,15 +4,19 @@ const plugin = require('tailwindcss/plugin');
 module.exports = {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        silver: 'silver',
+      },
+    },
   },
   plugins: [
     plugin(function ({ addComponents }) {
       addComponents({
         '.btn': {
-          padding: '.5rem 1rem',
-          borderRadius: '.25rem',
-          fontWeight: '600',
+          'padding': '.5rem 1rem',
+          'borderRadius': '.25rem',
+          'fontWeight': '600',
           '&:hover': {
             backgroundColor: '#ddd',
           },
@@ -22,7 +26,7 @@ module.exports = {
           '&:active': {
             backgroundColor: '#ccc',
           },
-          outline: 'none',
+          'outline': 'none',
         },
         '.btn-large': {
           display: 'flex',
@@ -33,8 +37,8 @@ module.exports = {
           marginBottom: '1.25rem',
         },
         '.btn-blue': {
-          backgroundColor: '#0d6efd',
-          color: '#fff',
+          'backgroundColor': '#0d6efd',
+          'color': '#fff',
           '&:hover': {
             backgroundColor: '#0b5ed7',
           },

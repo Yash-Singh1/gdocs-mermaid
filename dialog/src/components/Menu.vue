@@ -1,6 +1,6 @@
 <template>
   <Menu as="div" class="relative">
-    <MenuButton class="btn mb-0 px-2 py-1 border border-gray-400" type="button">
+    <MenuButton class="btn mb-0 px-2 py-1 border border-silver" type="button">
       {{ name }}
     </MenuButton>
     <transition

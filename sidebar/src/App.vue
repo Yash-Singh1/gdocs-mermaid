@@ -6,12 +6,10 @@ import {
   faArrowsRotate,
   faCircleNotch,
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ref, provide } from 'vue';
-import { MenuButton, MenuItems, MenuItem, Menu } from '@headlessui/vue';
-import Template from './components/Template.vue';
+import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
 
-const props = defineProps<{ reduced: boolean; templatePage: boolean }>();
+const props = defineProps<{ reduced: boolean }>();
 
 library.add(faPlus, faPencil, faArrowsRotate, faCircleNotch);
 
@@ -19,22 +17,21 @@ let inserting = ref(false);
 let insertType = ref('');
 let editing = ref(false);
 let refreshing = ref(false);
-let templatePage = ref(props.templatePage);
 
 provide('inserting', inserting);
 provide('insertType', insertType);
 
-function insert(type: string) {
+function insert() {
   if (!props.reduced) {
     inserting.value = true;
-    insertType.value = type;
+    insertType.value = 'blank';
   }
   google.script.run
     .withSuccessHandler(() => {
       inserting.value = false;
       insertType.value = '';
     })
-    .newDiagram(type);
+    .newDiagram('blank');
 }
 
 function edit() {
@@ -61,63 +58,29 @@ function refresh() {
 </script>
 
 <template>
-  <div class="d-grid gap-2" id="container" v-show="!templatePage">
-    <Menu as="div" class="relative">
-      <MenuButton
-        class="btn btn-large btn-blue mb-0"
-        type="button"
-        :disabled="inserting"
-      >
-        <font-awesome-icon
-          class="mr-1"
-          :icon="
-            inserting && insertType == 'blank'
-              ? 'fa-solid fa-circle-notch'
-              : 'fa-solid fa-plus'
-          "
-          :spin="inserting && insertType == 'blank'"
-        />
-        Insert
-      </MenuButton>
-      <transition
-        enter-active-class="transition duration-100 ease-out"
-        enter-from-class="transform scale-95 opacity-0"
-        enter-to-class="transform scale-100 opacity-100"
-        leave-active-class="transition duration-75 ease-in"
-        leave-from-class="transform scale-100 opacity-100"
-        leave-to-class="transform scale-95 opacity-0"
-      >
-        <MenuItems
-          class="absolute left-0 mt-1 ml-1 w-max box-content origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
-        >
-          <MenuItem>
-            <button
-              class="btn btn-large m-0 rounded-none text-left justify-start font-semibold pr-5"
-              @click="insert('blank')"
-            >
-              Blank
-            </button>
-          </MenuItem>
-          <MenuItem>
-            <button
-              class="btn btn-large m-0 rounded-none text-left justify-start font-semibold pr-5"
-              @click="templatePage = true"
-            >
-              Template
-            </button>
-          </MenuItem>
-        </MenuItems>
-      </transition>
-    </Menu>
+  <div class="d-grid gap-2" id="container">
+    <button
+      class="btn btn-large btn-blue"
+      type="button"
+      @click="insert()"
+      :disabled="inserting"
+    >
+      <FontAwesomeSolid
+        class="mr-1"
+        :icon="inserting && insertType == 'blank' ? 'circle-notch' : 'plus'"
+        :spin="inserting && insertType == 'blank'"
+      />
+      Insert
+    </button>
     <button
       class="btn btn-large btn-blue"
       type="button"
       @click="edit"
       :disabled="editing"
     >
-      <font-awesome-icon
+      <FontAwesomeSolid
         class="mr-1"
-        :icon="editing ? 'fa-solid fa-circle-notch' : 'fa-solid fa-pencil'"
+        :icon="editing ? 'circle-notch' : 'pencil'"
         :spin="editing"
       />
       Edit
@@ -128,53 +91,13 @@ function refresh() {
       @click="refresh"
       :disabled="refreshing"
     >
-      <font-awesome-icon
+      <FontAwesomeSolid
         class="mr-1"
-        :icon="
-          refreshing ? 'fa-solid fa-circle-notch' : 'fa-solid fa-arrows-rotate'
-        "
+        :icon="refreshing ? 'circle-notch' : 'arrows-rotate'"
         :spin="refreshing"
       />
       Refresh
     </button>
-  </div>
-  <div v-if="templatePage" class="p-8 grid grid-cols-1 max-w-[100vw]">
-    <h2 class="text-left">
-      <span
-        class="text-blue-500 cursor-pointer hover:text-blue-600 focus:text-blue-600 active:text-blue-700"
-        @click="templatePage = false"
-        >Home</span
-      >
-      /
-      <span
-        class="text-blue-500 cursor-pointer hover:text-blue-600 focus:text-blue-600 active:text-blue-700"
-        >Templates</span
-      >
-    </h2>
-    <Template
-      title="Sequence Diagram"
-      description="Show sequential flow in a diagram."
-      type="sequenceDiagram"
-      @select="insert"
-    />
-    <Template
-      title="Flowchart"
-      description="Describes a process or flow."
-      type="flowchart"
-      @select="insert"
-    />
-    <Template
-      title="Pie Chart"
-      description="Show relative categorization numbers."
-      type="pie"
-      @select="insert"
-    />
-    <Template
-      title="Git Graph"
-      description="Present a git version control workflow."
-      type="gitGraph"
-      @select="insert"
-    />
   </div>
 </template>
 
