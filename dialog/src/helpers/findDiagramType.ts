@@ -8,6 +8,9 @@ export function findDiagramType(lines: string[]): string | null {
     } else {
       if (line.trim().startsWith('%%{')) {
         inDirective = true;
+        if (line.trim().endsWith('%%')) {
+          inDirective = false;
+        }
       } else if (line.trim().startsWith('%%')) {
         continue;
       } else if (line.trim().length === 0) {

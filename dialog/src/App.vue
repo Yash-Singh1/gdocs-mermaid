@@ -15,7 +15,6 @@ import findDiagramType from './helpers/findDiagramType';
 import findAliasDiagram from './helpers/findAliasDiagram';
 import resetPanZoomInstance from './helpers/resetPanZoomInstance';
 import type { EditorView } from 'codemirror';
-import FontAwesomeSolid1 from 'shared/components/FontAwesomeSolid.vue';
 
 const props = defineProps<{
   code: string;
@@ -56,7 +55,10 @@ const json = ref<string[] | null>(null);
 
 // @ts-ignore - TODO: Contribute this to @types/mermaid
 mermaid.setParseErrorHandler(
-  (str: MermaidError['str'], hash: MermaidError['hash']) => {
+  (str: MermaidError['str'], hash: MermaidError['hash'] | undefined) => {
+    if (!hash || !hash.loc) {
+      return console.error(str);
+    }
     let from = calculateIndexForPosition(
       hash.loc.first_line,
       hash.loc.first_column,
@@ -76,6 +78,7 @@ mermaid.setParseErrorHandler(
         from
       ),
     };
+    console.error(str, hash);
   }
 );
 
@@ -148,14 +151,9 @@ function toggleFullscreen() {
   recognitionFailure.value = '';
 }
 
-function tool(tool: string) {
-  if (tool === 'voiceType') {
-    voiceType();
-  }
-}
-
 const SPEECH_RECOGNITION_ALTERNATIVES = 10;
 const replaceSelection = ref<string>('');
+const replaceAll = ref<string>('');
 const voiceTyping = ref(false);
 const voiceTyped = ref(false);
 const recognition = ref<SpeechRecognition | null>(null);
@@ -243,8 +241,23 @@ function voiceType() {
                   if (diagramCommands[command].cleanMatch) {
                     match = diagramCommands[command].cleanMatch!(match);
                   }
-                  replaceSelection.value =
-                    diagramCommands[command].manipulate(match) + '\n';
+                  let manipulation = diagramCommands[command].manipulate(
+                    match,
+                    (json.value || []).join('\n')
+                  );
+                  let replaceIt =
+                    typeof manipulation === 'string'
+                      ? false
+                      : manipulation.replace;
+                  let replaceString =
+                    typeof manipulation === 'string'
+                      ? manipulation
+                      : manipulation.text;
+                  if (replaceIt) {
+                    replaceAll.value = replaceString + '\n';
+                  } else {
+                    replaceSelection.value = replaceString + '\n';
+                  }
                   continue processLoop;
                 }
               }
@@ -261,8 +274,23 @@ function voiceType() {
                 if (match) {
                   if (commands['default'][command].cleanMatch)
                     match = commands['default'][command].cleanMatch!(match);
-                  replaceSelection.value =
-                    commands['default'][command].manipulate(match) + '\n';
+                  let manipulation = commands['default'][command].manipulate(
+                    match,
+                    (json.value || []).join('\n')
+                  );
+                  let replaceIt =
+                    typeof manipulation === 'string'
+                      ? false
+                      : manipulation.replace;
+                  let replaceString =
+                    typeof manipulation === 'string'
+                      ? manipulation
+                      : manipulation.text;
+                  if (replaceIt) {
+                    replaceAll.value = replaceString + '\n';
+                  } else {
+                    replaceSelection.value = replaceString + '\n';
+                  }
                   continue processLoop;
                 }
               }
@@ -291,7 +319,6 @@ function voiceType() {
   voiceTyping.value = true;
   voiceTyped.value = true;
 
-  // TODO: Figure out why can't focus when voice typing is initialized (probably due to rerender?).
   nextTick(() => {
     if (codemirrorEditor.value) {
       codemirrorEditor.value.view.focus();
@@ -352,6 +379,7 @@ onMounted(() => {
         :initialValue="code"
         :diagnostics="diagnostics"
         :replaceSelection="replaceSelection"
+        :replaceAll="replaceAll"
         ref="codemirrorEditor"
       />
     </div>

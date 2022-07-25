@@ -22,11 +22,14 @@ function cleanMatchPart(matchPart: string): string {
 export function cleanMatch(match: RegExpExecArray) {
   match[1] = cleanMatchPart(match[1]);
   match[7] = cleanMatchPart(match[8]);
-  if (match[3] === 'connect') {
+  if (match[3].toLowerCase() === 'connect') {
     match[3] = '->>';
-  } else if (match[3] === 'dash') {
+  } else if (match[3].toLowerCase() === 'dash') {
     match[3] = '-->>';
-  } else if (match[3] === 'broke' || match[3] === 'break') {
+  } else if (
+    match[3].toLowerCase() === 'broke' ||
+    match[3].toLowerCase() === 'break'
+  ) {
     match[3] = '--x';
   }
   return match;

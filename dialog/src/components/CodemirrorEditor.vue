@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch, type Ref } from 'vue';
 import { basicSetup } from 'codemirror';
 import { EditorView, keymap } from '@codemirror/view';
 import { Diagnostic, setDiagnostics } from '@codemirror/lint';
@@ -10,6 +10,7 @@ const props = defineProps<{
   initialValue?: string;
   diagnostics?: Diagnostic;
   replaceSelection?: string;
+  replaceAll?: string;
 }>();
 
 const emit = defineEmits<{
@@ -22,10 +23,31 @@ let view = ref<null | EditorView>(null);
 watch(
   () => props.replaceSelection,
   () => {
-    if (view && props.replaceSelection && props.replaceSelection.length > 0) {
-      view.value!.dispatch(
-        view.value!.state.replaceSelection(props.replaceSelection)
+    if (
+      view.value &&
+      props.replaceSelection &&
+      props.replaceSelection.length > 0
+    ) {
+      view.value.dispatch(
+        view.value.state.replaceSelection(props.replaceSelection)
       );
+    }
+  }
+);
+
+watch(
+  () => props.replaceAll,
+  () => {
+    if (view.value && props.replaceAll && props.replaceAll.length > 0) {
+      view.value.update([
+        view.value.state.update({
+          changes: {
+            from: 0,
+            to: view.value.state.doc.length - 1,
+            insert: props.replaceAll,
+          },
+        }),
+      ]);
     }
   }
 );
@@ -33,13 +55,13 @@ watch(
 watch(
   () => props.diagnostics,
   () => {
-    if (props.diagnostics) {
-      view.value!.dispatch(
+    if (props.diagnostics && view.value) {
+      view.value.dispatch(
         setDiagnostics(view.value!.state as unknown as EditorState, [
           props.diagnostics,
         ])
       );
-    } else if (view.value) {
+    } else if (view.value && !props.diagnostics) {
       view.value.dispatch(
         setDiagnostics(view.value!.state as unknown as EditorState, [])
       );
@@ -90,6 +112,7 @@ onMounted(() => {
 .cm-editor {
   height: 100%;
   border: 1px solid silver;
+  border-bottom-width: 2px;
   font-size: 14px;
 }
 

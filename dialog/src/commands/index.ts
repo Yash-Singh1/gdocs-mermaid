@@ -15,7 +15,10 @@ const commands: {
       /**
        * Manipulation to the regex match
        */
-      manipulate: (answer: RegExpExecArray) => string;
+      manipulate: (
+        answer: RegExpExecArray,
+        context: string
+      ) => string | { replace: boolean; text: string };
       /**
        * Clean the regex match before insertion
        */

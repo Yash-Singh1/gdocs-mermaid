@@ -30,13 +30,21 @@ function insert(type: string) {
     [props.attachTo ? 'applyTemplate' : 'newDiagram'](type);
 }
 
+function goToEditor() {
+  google.script.run.editSelectedDiagram();
+}
+
 provide('inserting', inserting);
 provide('insertType', insertType);
 provide('select', insert);
 </script>
 
 <template>
-  <h2 class="text-left pl-8 text-3xl">Templates</h2>
+  <h2 class="text-left pl-8 text-3xl" v-once>
+    <a href="#" @click="goToEditor" class="text-blue-500" v-if="attachTo"
+      >Editor</a
+    ><span v-if="attachTo" class="mx-2">/</span>Templates
+  </h2>
   <div class="px-8 pb-8 grid grid-cols-4 gap-4 max-w-[100vw]">
     <Template
       title="Sequence Diagram"
