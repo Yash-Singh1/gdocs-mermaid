@@ -30,8 +30,11 @@ export function showSidebar() {
   );
 }
 
-export function newDiagram(type: keyof typeof diagrams = 'blank') {
-  let url = `https://mermaid.ink/img/${diagrams[type]}`;
+export function newDiagram(
+  type: typeof unique extends true ? string : keyof typeof diagrams = 'blank',
+  unique: boolean
+) {
+  let url = `https://mermaid.ink/img/${unique ? type : diagrams[type]}`;
   let blob = UrlFetchApp.fetch(url).getBlob();
   let cursor = DocumentApp.getActiveDocument().getCursor();
   if (cursor) {
@@ -49,16 +52,20 @@ export function newDiagram(type: keyof typeof diagrams = 'blank') {
     .setLinkUrl(url);
 }
 
-export function applyTemplate(type: keyof typeof diagrams) {
+export function applyTemplate(
+  type: typeof unique extends true ? string : keyof typeof diagrams,
+  unique: boolean
+) {
   if (ensureSelected('Select a Flowcast diagram to edit one')) {
     let selectedElement = DocumentApp.getActiveDocument()
       .getSelection()
       .getRangeElements()[0]
       .getElement();
 
-    const url = `https://mermaid.ink/img/${diagrams[type]}`;
+    const url = `https://mermaid.ink/img/${unique ? type : diagrams[type]}`;
+    console.log(unique, type);
     const index = selectedElement.getParent().getChildIndex(selectedElement);
-    let blob = UrlFetchApp.fetch(url).getBlob();
+    let blob = UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getBlob();
     (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
       .insertInlineImage(index + 1, blob)
       .setLinkUrl(url);
@@ -84,10 +91,7 @@ export function editSelectedDiagram() {
     ).getDataAsString();
     let evaluated = htmlTemplate.evaluate();
     DocumentApp.getUi().showModalDialog(
-      evaluated
-        .setWidth(1237.5)
-        .setHeight(886.5)
-        .setTitle('Flowcast'),
+      evaluated.setWidth(1237.5).setHeight(886.5).setTitle('Flowcast'),
       'Flowcast'
     );
   }
@@ -120,12 +124,44 @@ export function showTemplating(attachTo: boolean = false) {
     htmlTemplate.attachTo = 'false';
   }
 
+  htmlTemplate.templates = Object.entries(
+    PropertiesService.getUserProperties().getProperties()
+  )
+    .map((entry) => {
+      return Utilities.base64Encode(
+        JSON.stringify({
+          name: entry[0],
+          ...JSON.parse(
+            Utilities.newBlob(
+              Utilities.base64Decode(entry[1], Utilities.Charset.UTF_8)
+            ).getDataAsString()
+          ),
+        })
+      );
+    })
+    .join(',');
+
   let evaluated = htmlTemplate.evaluate();
   DocumentApp.getUi().showModalDialog(
-    evaluated
-      .setWidth(1237.5)
-      .setHeight(886.5)
-      .setTitle('Flowcast Templates'),
+    evaluated.setWidth(1237.5).setHeight(886.5).setTitle('Flowcast Templates'),
     'Flowcast Templates'
+  );
+}
+
+interface Template {
+  name: string;
+  description: string;
+  code: string;
+}
+
+export function createPersonalTemplate(template: Template) {
+  PropertiesService.getUserProperties().setProperty(
+    template.name,
+    Utilities.base64Encode(
+      JSON.stringify({
+        ...template,
+        name: undefined,
+      })
+    )
   );
 }

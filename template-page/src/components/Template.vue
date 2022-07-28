@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import flowchart from '../assets/flowchart.svg?raw';
 import { inject } from 'vue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
+import CustomTemplate from '../types/CustomTemplate';
 
 const img = `data:image/svg+xml;base64,${btoa(flowchart)}`;
 
 const props = defineProps<{
   title: string;
   description: string;
-  type: string;
+  type: string | CustomTemplate;
 }>();
 
 const inserting = inject<boolean>('inserting');
 const insertType = inject<string>('insertType');
-const select = inject<(type: string) => void>('select');
+const select = inject<(type: string | CustomTemplate) => void>('select');
 </script>
 
 <template>
@@ -36,7 +36,11 @@ const select = inject<(type: string) => void>('select');
           class="mr-1"
           icon="circle-notch"
           spin
-          v-if="inserting && insertType == props.type"
+          v-if="
+            inserting &&
+            (insertType == props.type ||
+              (typeof props.type !== 'string' && insertType == props.type.code))
+          "
         />
         Select
       </button>

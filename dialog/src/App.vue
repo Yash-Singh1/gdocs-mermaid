@@ -354,6 +354,29 @@ onMounted(() => {
     }, 100);
   });
 });
+
+const creatingTemplate = ref(false);
+const templateName = ref('');
+const templateDescription = ref('');
+
+function templateCreation() {
+  creatingTemplate.value = true;
+  templateName.value = '';
+  templateDescription.value = '';
+}
+
+function createTemplate() {
+  creatingTemplate.value = false;
+  if (templateName.value.length === 0) {
+    return;
+  }
+  const template = {
+    name: templateName.value,
+    description: templateDescription.value,
+    code: btoa((json.value || []).join('\n')),
+  };
+  google.script.run.createPersonalTemplate(template);
+}
 </script>
 
 <template>
@@ -371,6 +394,11 @@ onMounted(() => {
             icon="file-import"
             class="p-0 cursor-pointer icon-toolbar"
             @click="replaceWithTemplate()"
+          />
+          <FontAwesomeSolid
+            icon="rocket"
+            class="p-0 cursor-pointer icon-toolbar"
+            @click="templateCreation()"
           />
         </div>
       </div>
@@ -391,10 +419,17 @@ onMounted(() => {
     />
   </div>
   <Teleport v-if="recognitionFailure != ''" to="#modal">
-    <Modal
-      @close="recognitionFailure = ''"
-      :recognitionFailure="recognitionFailure"
-    />
+    <Modal @close="recognitionFailure = ''">{{ recognitionFailure }}</Modal>
+  </Teleport>
+  <Teleport v-if="creatingTemplate" to="#modal">
+    <Modal closeBtn="Apply" @close="createTemplate()">
+      <input type="text" placeholder="Name" v-model="templateName" />
+      <input
+        type="text"
+        placeholder="Description"
+        v-model="templateDescription"
+      />
+    </Modal>
   </Teleport>
 </template>
 

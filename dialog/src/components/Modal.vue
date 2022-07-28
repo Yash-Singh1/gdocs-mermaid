@@ -1,12 +1,14 @@
 <template>
   <div id="modal-content">
-    <p>{{ recognitionFailure }}</p>
-    <button @click="emit('close')" class="btn btn-blue btn-large">Close</button>
+    <slot />
+    <button @click="emit('close')" class="btn btn-blue btn-large">
+      {{ closeBtn || 'Close' }}
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ recognitionFailure: string }>();
+const props = defineProps<{ closeBtn?: string }>();
 const emit = defineEmits<{ (e: 'close'): void }>();
 </script>
 
@@ -18,5 +20,6 @@ const emit = defineEmits<{ (e: 'close'): void }>();
   top: 25vh;
   left: 25vw;
   z-index: 100;
+  @apply rounded-md bg-gray-300 border-gray-900 border-2 p-5;
 }
 </style>

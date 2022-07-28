@@ -7,6 +7,7 @@ import {
   faMinimize,
   faXmark,
   faFileImport,
+  faRocket,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -16,5 +17,6 @@ library.add(
   faXmark,
   faMicrophone,
   faCircle,
-  faFileImport
+  faFileImport,
+  faRocket
 );

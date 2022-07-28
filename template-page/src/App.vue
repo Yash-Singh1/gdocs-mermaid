@@ -8,18 +8,29 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Template from './components/Template.vue';
 import { ref, provide } from 'vue';
+import CustomTemplate from './types/CustomTemplate';
 
 let inserting = ref(false);
 let insertType = ref('');
 
-const props = defineProps<{ reduced: boolean; attachTo: boolean }>();
+interface Template {
+  name: string;
+  description: string;
+  code: string;
+}
+
+const props = defineProps<{
+  reduced: boolean;
+  attachTo: boolean;
+  templates: Template[];
+}>();
 
 library.add(faPlus, faPencil, faArrowsRotate, faCircleNotch);
 
-function insert(type: string) {
+function insert(type: string | CustomTemplate) {
   if (!props.reduced) {
     inserting.value = true;
-    insertType.value = type;
+    insertType.value = typeof type === 'string' ? type : type.code;
   }
   google.script.run
     .withSuccessHandler(() => {
@@ -27,7 +38,10 @@ function insert(type: string) {
       insertType.value = '';
       google.script.host.close();
     })
-    [props.attachTo ? 'applyTemplate' : 'newDiagram'](type);
+    [props.attachTo ? 'applyTemplate' : 'newDiagram'](
+      typeof type === 'string' ? type : type.code,
+      typeof type !== 'string'
+    );
 }
 
 function goToEditor() {
@@ -65,6 +79,12 @@ provide('select', insert);
       title="Git Graph"
       description="Present a git version control workflow."
       type="gitGraph"
+    />
+    <Template
+      :title="template.name"
+      :description="template.description"
+      :type="{ special: true, code: template.code }"
+      v-for="template in templates"
     />
   </div>
 </template>

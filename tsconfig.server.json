@@ -2,5 +2,6 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "files": ["server/Code.ts"]
+  "files": ["server/Code.ts"],
+  "include": ["server/**/*.d.ts"]
 }
