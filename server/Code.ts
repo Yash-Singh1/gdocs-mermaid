@@ -165,3 +165,7 @@ export function createPersonalTemplate(template: Template) {
     )
   );
 }
+
+export function deleteTemplate(templateName: string) {
+  PropertiesService.getUserProperties().deleteProperty(templateName);
+}

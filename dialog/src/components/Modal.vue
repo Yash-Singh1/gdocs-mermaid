@@ -1,5 +1,10 @@
 <template>
   <div id="modal-content">
+    <span
+      class="close-it absolute right-1 -top-1 text-2xl cursor-pointer"
+      @click="emit('cancel')"
+      >&times;</span
+    >
     <slot />
     <button @click="emit('close')" class="btn btn-blue btn-large">
       {{ closeBtn || 'Close' }}
@@ -9,7 +14,7 @@
 
 <script setup lang="ts">
 const props = defineProps<{ closeBtn?: string }>();
-const emit = defineEmits<{ (e: 'close'): void }>();
+const emit = defineEmits<{ (e: 'close'): void; (e: 'cancel'): void }>();
 </script>
 
 <style>
@@ -21,5 +26,9 @@ const emit = defineEmits<{ (e: 'close'): void }>();
   left: 25vw;
   z-index: 100;
   @apply rounded-md bg-gray-300 border-gray-900 border-2 p-5;
+}
+
+.close-it {
+  line-height: 1.5rem;
 }
 </style>

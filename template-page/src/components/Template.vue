@@ -12,9 +12,18 @@ const props = defineProps<{
   type: string | CustomTemplate;
 }>();
 
+const emit = defineEmits<{
+  (event: 'delete', what: string): void;
+}>();
+
 const inserting = inject<boolean>('inserting');
 const insertType = inject<string>('insertType');
 const select = inject<(type: string | CustomTemplate) => void>('select');
+
+function deleteTemplate() {
+  google.script.run.deleteTemplate(props.title);
+  emit('delete', props.title);
+}
 </script>
 
 <template>
@@ -26,7 +35,7 @@ const select = inject<(type: string | CustomTemplate) => void>('select');
       <h2 class="text-xl font-bold mb-2">{{ props.title }}</h2>
       <p class="text-gray-700 text-base">{{ props.description }}</p>
     </div>
-    <div class="px-6 pb-2 absolute bottom-0">
+    <div class="px-6 pb-2 absolute bottom-0 flex gap-4">
       <button
         class="btn btn-large btn-blue mt-0 w-max"
         @click="select?.(props.type)"
@@ -43,6 +52,13 @@ const select = inject<(type: string | CustomTemplate) => void>('select');
           "
         />
         Select
+      </button>
+      <button
+        v-if="typeof props.type !== 'string' && 'special' in props.type"
+        class="btn btn-large btn-blue mt-0 w-max"
+        @click="deleteTemplate"
+      >
+        Delete
       </button>
     </div>
   </div>

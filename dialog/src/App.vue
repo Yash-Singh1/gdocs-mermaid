@@ -419,12 +419,24 @@ function createTemplate() {
     />
   </div>
   <Teleport v-if="recognitionFailure != ''" to="#modal">
-    <Modal @close="recognitionFailure = ''">{{ recognitionFailure }}</Modal>
+    <Modal @close="recognitionFailure = ''" @cancel="recognitionFailure = ''">{{
+      recognitionFailure
+    }}</Modal>
   </Teleport>
   <Teleport v-if="creatingTemplate" to="#modal">
-    <Modal closeBtn="Apply" @close="createTemplate()">
-      <input type="text" placeholder="Name" v-model="templateName" />
+    <Modal
+      closeBtn="Apply"
+      @close="createTemplate()"
+      @cancel="creatingTemplate = false"
+    >
       <input
+        class="block w-full mx-auto border-gray-500 border p-1 text-lg m-2 rounded-md pl-2 focus:outline-2 focus:outline-emerald-400 focus:transition-all shadow"
+        type="text"
+        placeholder="Name"
+        v-model="templateName"
+      />
+      <input
+        class="block w-full mx-auto border-gray-500 border p-1 text-lg m-2 rounded-md pl-2 focus:outline-2 focus:outline-emerald-400 focus:transition-all shadow"
         type="text"
         placeholder="Description"
         v-model="templateDescription"

@@ -7,7 +7,7 @@ import {
   faCircleNotch,
 } from '@fortawesome/free-solid-svg-icons';
 import Template from './components/Template.vue';
-import { ref, provide } from 'vue';
+import { ref, provide, toRef } from 'vue';
 import CustomTemplate from './types/CustomTemplate';
 
 let inserting = ref(false);
@@ -24,6 +24,8 @@ const props = defineProps<{
   attachTo: boolean;
   templates: Template[];
 }>();
+
+const templates = ref(props.templates);
 
 library.add(faPlus, faPencil, faArrowsRotate, faCircleNotch);
 
@@ -46,6 +48,12 @@ function insert(type: string | CustomTemplate) {
 
 function goToEditor() {
   google.script.run.editSelectedDiagram();
+}
+
+function deleteTemplate(what: string) {
+  templates.value = templates.value.filter(
+    (template) => template.name !== what
+  );
 }
 
 provide('inserting', inserting);
@@ -84,6 +92,7 @@ provide('select', insert);
       :title="template.name"
       :description="template.description"
       :type="{ special: true, code: template.code }"
+      @delete="deleteTemplate"
       v-for="template in templates"
     />
   </div>

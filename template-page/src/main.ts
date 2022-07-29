@@ -6,6 +6,7 @@ const attachTo = document.getElementById('attachTo')!.innerText !== 'false';
 const templates = document
   .getElementById('templates')!
   .innerText.split(',')
+  .filter((template) => template !== '')
   .map((template) => {
     return JSON.parse(atob(template));
   });
