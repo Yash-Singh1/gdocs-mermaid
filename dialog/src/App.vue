@@ -388,15 +388,18 @@ function createTemplate() {
             :icon="voiceTyping ? 'circle' : 'microphone'"
             :class="voiceTyping && 'record-pulse text-red-500 p-0'"
             class="icon-toolbar cursor-pointer"
+            v-tooltip="`Voice Typing`"
             @click="voiceTyping ? pauseVoiceType() : voiceType()"
           />
           <FontAwesomeSolid
             icon="file-import"
             class="p-0 cursor-pointer icon-toolbar"
+            v-tooltip="`Import Template`"
             @click="replaceWithTemplate()"
           />
           <FontAwesomeSolid
             icon="rocket"
+            v-tooltip="`Save as Template`"
             class="p-0 cursor-pointer icon-toolbar"
             @click="templateCreation()"
           />
