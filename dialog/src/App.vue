@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { nextTick, onMounted, computed, ref } from 'vue';
 import CodemirrorEditor from './components/CodemirrorEditor.vue';
 import mermaid from 'mermaid';
 import type { Diagnostic } from '@codemirror/lint';
@@ -15,6 +15,7 @@ import findDiagramType from './helpers/findDiagramType';
 import findAliasDiagram from './helpers/findAliasDiagram';
 import resetPanZoomInstance from './helpers/resetPanZoomInstance';
 import type { EditorView } from 'codemirror';
+import regenRecordCanvas from './helpers/regenRecordCanvas';
 
 const props = defineProps<{
   code: string;
@@ -104,6 +105,7 @@ function refresh(newValue: string) {
         const svgEl = document.getElementById('output')!.querySelector('svg')!;
         svgEl.style.maxWidth = 'none';
         svgEl.style.height = '100%';
+        const storedSvg = svgEl.outerHTML;
         const width = document.getElementById('output')!.offsetWidth;
         diagnostics.value = undefined;
         panZoomInstance.value = svgPanZoom(svgEl, {
@@ -118,9 +120,11 @@ function refresh(newValue: string) {
         nextTick(() => {
           svgEl.style.width = '100%';
           resetPanZoomInstance(panZoomInstance.value);
+          regenRecordCanvas(storedSvg);
           const interval = setInterval(() => {
             if (width !== document.getElementById('output')!.offsetWidth) {
               resetPanZoomInstance(panZoomInstance.value);
+              regenRecordCanvas(storedSvg);
               clearInterval(interval);
             }
           }, 50);
@@ -377,6 +381,47 @@ function createTemplate() {
   };
   google.script.run.createPersonalTemplate(template);
 }
+
+const recording = ref<boolean>(false);
+const stream = ref<MediaStream | null>(null);
+const recorder = ref<MediaRecorder | null>(null);
+const data = ref<Blob[]>([]);
+const download = ref<boolean>(false);
+const recorded = ref<string | null>(null);
+
+function startRecording() {
+  data.value = [];
+  recording.value = true;
+  stream.value = (
+    document.getElementById('record') as HTMLCanvasElement
+  ).captureStream(30);
+  const mediaRecorder = new MediaRecorder(stream.value);
+  mediaRecorder.ondataavailable = (event) => {
+    console.log(event);
+    data.value.push(event.data);
+  };
+  mediaRecorder.onstop = prepDownload;
+  mediaRecorder!.start();
+  refresh((json.value || []).join('\n'));
+  recorder.value = mediaRecorder;
+}
+
+function prepDownload() {
+  nextTick(() => {
+    const blob = new Blob(data.value);
+    recorded.value = URL.createObjectURL(blob);
+    download.value = true;
+    stream.value!.getTracks().forEach((track) => track.stop());
+  });
+}
+
+function stopRecording() {
+  if (!recording) {
+    return;
+  }
+  recorder.value!.stop();
+  recording.value = false;
+}
 </script>
 
 <template>
@@ -402,6 +447,18 @@ function createTemplate() {
             v-tooltip="`Save as Template`"
             class="p-0 cursor-pointer icon-toolbar"
             @click="templateCreation()"
+          />
+          <FontAwesomeSolid
+            icon="camera"
+            v-tooltip="`Start Recording`"
+            class="p-0 cursor-pointer icon-toolbar"
+            @click="startRecording()"
+          />
+          <FontAwesomeSolid
+            icon="hand"
+            v-tooltip="`Stop Recording`"
+            class="p-0 cursor-pointer icon-toolbar"
+            @click="stopRecording()"
           />
         </div>
       </div>
@@ -446,6 +503,21 @@ function createTemplate() {
       />
     </Modal>
   </Teleport>
+  <Teleport v-if="download" to="#modal">
+    <Modal :closeBtn="false" @cancel="download = false">
+      <a
+        download="diagram.webm"
+        class="btn btn-blue btn-large"
+        :href="recorded!"
+        @click="download = false"
+      >
+        Download
+      </a>
+    </Modal>
+  </Teleport>
+  <div class="hidden">
+    <canvas id="record"></canvas>
+  </div>
 </template>
 
 <style>

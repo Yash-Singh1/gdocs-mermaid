@@ -6,14 +6,18 @@
       >&times;</span
     >
     <slot />
-    <button @click="emit('close')" class="btn btn-blue btn-large">
+    <button
+      v-if="closeBtn !== false"
+      @click="emit('close')"
+      class="btn btn-blue btn-large"
+    >
       {{ closeBtn || 'Close' }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ closeBtn?: string }>();
+const props = defineProps<{ closeBtn?: string | false }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'cancel'): void }>();
 </script>
 

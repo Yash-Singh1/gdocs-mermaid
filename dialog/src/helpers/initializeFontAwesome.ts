@@ -8,6 +8,8 @@ import {
   faXmark,
   faFileImport,
   faRocket,
+  faCamera,
+  faHand,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -18,5 +20,7 @@ library.add(
   faMicrophone,
   faCircle,
   faFileImport,
-  faRocket
+  faRocket,
+  faCamera,
+  faHand
 );
