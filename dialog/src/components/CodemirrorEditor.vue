@@ -5,6 +5,7 @@ import { EditorView, keymap } from '@codemirror/view';
 import { Diagnostic, setDiagnostics } from '@codemirror/lint';
 import { EditorState, StateField, Text } from '@codemirror/state';
 import { indentWithTab } from '@codemirror/commands';
+import breakpointGutter, { breakpointState } from '../helpers/breakpoints';
 
 const props = defineProps<{
   initialValue?: string;
@@ -19,6 +20,8 @@ const emit = defineEmits<{
 
 let container = ref<null | HTMLElement>(null);
 let view = ref<null | EditorView>(null);
+
+// TODO: Figure out why we need to use watch and can't use refs, tried it out but doesn't work
 
 watch(
   () => props.replaceSelection,
@@ -87,6 +90,12 @@ onMounted(() => {
     view.value = new EditorView({
       state: EditorState.create({
         extensions: [
+          breakpointGutter({
+            callback: (view, line) => {
+              console.log('changed breakpoint', view, line);
+              debugger;
+            },
+          }),
           basicSetup,
           keymap.of([indentWithTab]),
           listenChangesExtension,

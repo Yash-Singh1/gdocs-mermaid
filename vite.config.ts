@@ -90,7 +90,7 @@ export function vitePluginInlinejs() {
 }
 
 function configBuilder(input) {
-  return defineConfig({
+  return defineConfig(({ mode }) => ({
     plugins: [vue(), vitePluginInlineCSS(), vitePluginInlinejs()],
     build: {
       emptyOutDir: true,
@@ -114,8 +114,9 @@ function configBuilder(input) {
       chunkSizeWarningLimit: 100_000_000_000,
       assetsDir: '.',
       reportCompressedSize: false,
+      minify: mode === 'production',
     },
-  });
+  }));
 }
 
 export default configBuilder;
