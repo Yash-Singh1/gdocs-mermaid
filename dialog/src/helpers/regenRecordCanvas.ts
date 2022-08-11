@@ -10,11 +10,23 @@ function regenRecordCanvas(svg: string) {
     image.onload = () => {
       ctx.canvas.setAttribute(
         'width',
-        (document.getElementById('output')!.offsetWidth * 10).toString()
+        (
+          (
+            document.querySelector(
+              '#output > svg > g.svg-pan-zoom_viewport'
+            )! as SVGGElement
+          ).getBBox().width * 10
+        ).toString()
       );
       ctx.canvas.setAttribute(
         'height',
-        (document.getElementById('output')!.offsetHeight * 10).toString()
+        (
+          (
+            document.querySelector(
+              '#output > svg > g.svg-pan-zoom_viewport'
+            )! as SVGGElement
+          ).getBBox().height * 10
+        ).toString()
       );
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       ctx.drawImage(image, 0, 0, ctx.canvas.width, ctx.canvas.height);

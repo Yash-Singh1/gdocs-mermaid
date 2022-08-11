@@ -37,7 +37,7 @@ function toggleBreakpoint(view: EditorView, pos: number) {
 
 const breakpointMarker = new (class extends GutterMarker {
   toDOM() {
-    return document.createTextNode('🔴');
+    return document.createTextNode('👇');
   }
 })();
 
@@ -62,9 +62,11 @@ const breakpointGutter = ({
     }),
     EditorView.baseTheme({
       '.cm-breakpoint-gutter .cm-gutterElement': {
-        color: 'red',
+        color: 'yellow',
         paddingLeft: '5px',
         cursor: 'default',
+        pointerEvents: 'none',
+        userSelect: 'none',
       },
     }),
   ];

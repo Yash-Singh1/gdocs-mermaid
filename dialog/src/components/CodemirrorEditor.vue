@@ -6,12 +6,16 @@ import { Diagnostic, setDiagnostics } from '@codemirror/lint';
 import { EditorState, StateField, Text } from '@codemirror/state';
 import { indentWithTab } from '@codemirror/commands';
 import breakpointGutter, { breakpointState } from '../helpers/breakpoints';
+import activeShownLine, {
+  activeShownLineEffect,
+} from '../helpers/activeShownLine';
 
 const props = defineProps<{
   initialValue?: string;
   diagnostics?: Diagnostic;
   replaceSelection?: string;
   replaceAll?: string;
+  activeLine: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -72,8 +76,22 @@ watch(
   }
 );
 
+watch(
+  () => props.activeLine,
+  () => {
+    if (view.value) {
+      view.value.dispatch({
+        effects: activeShownLineEffect.of(props.activeLine),
+      });
+    }
+  }
+);
+
+const breakpoints = ref<number[]>([]);
+
 defineExpose({
   view,
+  breakpoints,
 });
 
 onMounted(() => {
@@ -91,14 +109,21 @@ onMounted(() => {
       state: EditorState.create({
         extensions: [
           breakpointGutter({
-            callback: (view, line) => {
-              console.log('changed breakpoint', view, line);
-              debugger;
+            callback: (updatedView) => {
+              const state = updatedView.state.field(breakpointState);
+              breakpoints.value = [];
+              // @ts-ignore -- RangeSet.length does seem to exist on the console, types not up to date
+              state.between(0, state.length, (from) => {
+                breakpoints.value.push(
+                  updatedView.state.doc.lineAt(from).number
+                );
+              });
             },
           }),
           basicSetup,
           keymap.of([indentWithTab]),
           listenChangesExtension,
+          activeShownLine(),
         ],
         doc: props.initialValue,
       }),

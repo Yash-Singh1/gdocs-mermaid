@@ -16,6 +16,7 @@ import findAliasDiagram from './helpers/findAliasDiagram';
 import resetPanZoomInstance from './helpers/resetPanZoomInstance';
 import type { EditorView } from 'codemirror';
 import regenRecordCanvas from './helpers/regenRecordCanvas';
+import eatUnneededLines from './helpers/eatUnneededLines';
 
 const props = defineProps<{
   code: string;
@@ -95,11 +96,8 @@ function refresh(newValue: string) {
   try {
     mermaid.render('diagram', code.value, (svg) => {
       if (svg.length > 0) {
-        let alreadyLoaded = false;
         if (panZoomInstance.value) {
           panZoomInstance.value.destroy();
-        } else {
-          alreadyLoaded = false;
         }
         document.getElementById('output')!.innerHTML = svg;
         const svgEl = document.getElementById('output')!.querySelector('svg')!;
@@ -345,7 +343,10 @@ function replaceWithTemplate() {
   google.script.run.showTemplating(/* attachTo */ true);
 }
 
-const codemirrorEditor = ref<{ view: EditorView } | null>(null);
+const codemirrorEditor = ref<{
+  view: EditorView;
+  breakpoints: number[];
+} | null>(null);
 
 onMounted(() => {
   nextTick(() => {
@@ -395,14 +396,16 @@ function startRecording() {
   stream.value = (
     document.getElementById('record') as HTMLCanvasElement
   ).captureStream(30);
-  const mediaRecorder = new MediaRecorder(stream.value);
+  const mediaRecorder = new MediaRecorder(stream.value, {
+    mimeType: 'video/webm',
+  });
   mediaRecorder.ondataavailable = (event) => {
     console.log(event);
     data.value.push(event.data);
   };
   mediaRecorder.onstop = prepDownload;
   mediaRecorder!.start();
-  refresh((json.value || []).join('\n'));
+  hideAll();
   recorder.value = mediaRecorder;
 }
 
@@ -419,8 +422,31 @@ function stopRecording() {
   if (!recording) {
     return;
   }
+  activeLine.value = null;
   recorder.value!.stop();
   recording.value = false;
+}
+
+const activeLine = ref<number | null>(null);
+
+function hideAll() {
+  activeLine.value = 1;
+  showNext();
+}
+
+function showNext() {
+  if (!activeLine.value) {
+    activeLine.value = 1;
+  }
+  if (codemirrorEditor.value) {
+    activeLine.value++;
+    activeLine.value = eatUnneededLines(
+      json.value || [],
+      activeLine.value,
+      codemirrorEditor.value.breakpoints
+    );
+    refresh((json.value || []).slice(0, activeLine.value).join('\n'));
+  }
 }
 </script>
 
@@ -449,16 +475,22 @@ function stopRecording() {
             @click="templateCreation()"
           />
           <FontAwesomeSolid
-            icon="camera"
-            v-tooltip="`Start Recording`"
+            :icon="recording ? 'hand' : 'camera'"
+            v-tooltip="recording ? `Stop Recording` : `Start Recording`"
             class="p-0 cursor-pointer icon-toolbar"
-            @click="startRecording()"
+            @click="recording ? stopRecording() : startRecording()"
           />
           <FontAwesomeSolid
-            icon="hand"
-            v-tooltip="`Stop Recording`"
+            icon="eye-slash"
+            v-tooltip="`Hide All`"
             class="p-0 cursor-pointer icon-toolbar"
-            @click="stopRecording()"
+            @click="hideAll()"
+          />
+          <FontAwesomeSolid
+            icon="angles-right"
+            v-tooltip="`Show Next`"
+            class="p-0 cursor-pointer icon-toolbar"
+            @click="showNext()"
           />
         </div>
       </div>
@@ -468,6 +500,7 @@ function stopRecording() {
         :diagnostics="diagnostics"
         :replaceSelection="replaceSelection"
         :replaceAll="replaceAll"
+        :activeLine="activeLine"
         ref="codemirrorEditor"
       />
     </div>

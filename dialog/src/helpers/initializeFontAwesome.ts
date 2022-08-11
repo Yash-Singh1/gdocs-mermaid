@@ -10,6 +10,8 @@ import {
   faRocket,
   faCamera,
   faHand,
+  faEyeSlash,
+  faAnglesRight,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -22,5 +24,7 @@ library.add(
   faFileImport,
   faRocket,
   faCamera,
-  faHand
+  faHand,
+  faEyeSlash,
+  faAnglesRight
 );
