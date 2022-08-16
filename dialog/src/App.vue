@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, computed, ref } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 import CodemirrorEditor from './components/CodemirrorEditor.vue';
 import mermaid from 'mermaid';
 import type { Diagnostic } from '@codemirror/lint';
@@ -17,6 +17,7 @@ import resetPanZoomInstance from './helpers/resetPanZoomInstance';
 import type { EditorView } from 'codemirror';
 import regenRecordCanvas from './helpers/regenRecordCanvas';
 import eatUnneededLines from './helpers/eatUnneededLines';
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
 
 const props = defineProps<{
   code: string;
@@ -24,6 +25,9 @@ const props = defineProps<{
 }>();
 
 const code = ref(props.code);
+const config = ref(
+  JSON.stringify(props.mermaid) || JSON.stringify({ theme: 'default' })
+);
 const saving = ref(false);
 
 function save() {
@@ -86,13 +90,13 @@ mermaid.setParseErrorHandler(
 
 const panZoomInstance = ref<null | typeof svgPanZoom>(null);
 
-function refresh(newValue: string) {
+function refresh(newValue: string, config: any) {
   code.value = newValue;
   // TODO: Contribute boolean return value to @types/mermaid
   if (!mermaid.parse(code.value)) {
     return;
   }
-  mermaid.initialize(props.mermaid || { theme: 'default' });
+  mermaid.initialize(config || { theme: 'default' });
   try {
     mermaid.render('diagram', code.value, (svg) => {
       if (svg.length > 0) {
@@ -134,7 +138,7 @@ function refresh(newValue: string) {
 
 function onChange(doc: Text) {
   json.value = doc.toJSON();
-  refresh(doc.toString());
+  refresh(doc.toString(), JSON.parse(config.value));
 }
 
 const fullscreen = ref(false);
@@ -350,7 +354,7 @@ const codemirrorEditor = ref<{
 
 onMounted(() => {
   nextTick(() => {
-    refresh(code.value);
+    refresh(code.value, JSON.parse(config.value));
     const interval = setInterval(() => {
       if (codemirrorEditor.value) {
         clearInterval(interval);
@@ -445,64 +449,129 @@ function showNext() {
       activeLine.value,
       codemirrorEditor.value.breakpoints
     );
-    refresh((json.value || []).slice(0, activeLine.value).join('\n'));
+    refresh(
+      (json.value || []).slice(0, activeLine.value).join('\n'),
+      JSON.parse(config.value)
+    );
   }
 }
+
+function configChange(newConfig: Text) {
+  config.value = newConfig.toJSON().join('\n');
+  refresh(json.value!.join('\n'), JSON.parse(config.value));
+}
+
+const activeTab = ref(false);
+
+function watchCallback() {
+  nextTick(() => {
+    if (document.getElementById('container')) {
+      document.getElementById('container')!.style.maxHeight = `${
+        window.innerHeight -
+        (document.querySelector('div[role="tablist"]') as HTMLDivElement)
+          .offsetHeight -
+        (document.querySelector('.tab-panel-code')
+          ? (document.querySelector('.toolbar') as HTMLDivElement).offsetHeight
+          : 0)
+      }px`;
+      document.getElementById('container')!.style.minHeight =
+        document.getElementById('container')!.style.maxHeight;
+    }
+  });
+}
+
+watch(() => activeTab.value, watchCallback, { immediate: true });
+
+onMounted(() => {
+  nextTick(() => {
+    const interval = setInterval(() => {
+      if (!document.getElementById('container')) return;
+      watchCallback();
+      clearInterval(interval);
+    }, 20);
+  });
+});
 </script>
 
 <template>
   <div class="row flex flex-wrap">
     <div class="col-6 flex flex-col">
-      <div class="toolbar text-sm h-9">
-        <div class="position-relative h-full border border-silver border-b-0">
-          <FontAwesomeSolid
-            :icon="voiceTyping ? 'circle' : 'microphone'"
-            :class="voiceTyping && 'record-pulse text-red-500 p-0'"
-            class="icon-toolbar cursor-pointer"
-            v-tooltip="`Voice Typing`"
-            @click="voiceTyping ? pauseVoiceType() : voiceType()"
-          />
-          <FontAwesomeSolid
-            icon="file-import"
-            class="p-0 cursor-pointer icon-toolbar"
-            v-tooltip="`Import Template`"
-            @click="replaceWithTemplate()"
-          />
-          <FontAwesomeSolid
-            icon="rocket"
-            v-tooltip="`Save as Template`"
-            class="p-0 cursor-pointer icon-toolbar"
-            @click="templateCreation()"
-          />
-          <FontAwesomeSolid
-            :icon="recording ? 'hand' : 'camera'"
-            v-tooltip="recording ? `Stop Recording` : `Start Recording`"
-            class="p-0 cursor-pointer icon-toolbar"
-            @click="recording ? stopRecording() : startRecording()"
-          />
-          <FontAwesomeSolid
-            icon="eye-slash"
-            v-tooltip="`Hide All`"
-            class="p-0 cursor-pointer icon-toolbar"
-            @click="hideAll()"
-          />
-          <FontAwesomeSolid
-            icon="angles-right"
-            v-tooltip="`Show Next`"
-            class="p-0 cursor-pointer icon-toolbar"
-            @click="showNext()"
-          />
-        </div>
-      </div>
-      <CodemirrorEditor
-        @change="onChange"
-        :initialValue="code"
-        :diagnostics="diagnostics"
-        :replaceSelection="replaceSelection"
-        :replaceAll="replaceAll"
-        :activeLine="activeLine"
-        ref="codemirrorEditor"
-      />
+      <TabGroup @change="activeTab = !activeTab">
+        <TabList
+          class="pt-[2px] pl-1 rounded-t-md bg-gray-200 flex gap-x-2"
+        >
+          <Tab class="py-1 px-2 text-sm text-white rounded-t-lg bg-blue-500" :class="activeTab ? '' : 'border-2 border-blue-500'"
+            >Markup</Tab
+          >
+          <Tab class="pt-1 px-2 text-sm text-white rounded-t-lg bg-blue-500" :class="activeTab ? 'border-2 border-blue-500' : ''"
+            >Config</Tab
+          >
+        </TabList>
+        <TabPanels class="basis-full">
+          <TabPanel class="grid grid-rows-[max-content_1fr] tab-panel-code">
+            <div class="toolbar text-sm h-9">
+              <div
+                class="position-relative h-full border border-silver border-b-0"
+              >
+                <FontAwesomeSolid
+                  :icon="voiceTyping ? 'circle' : 'microphone'"
+                  :class="voiceTyping && 'record-pulse text-red-500 p-0'"
+                  class="icon-toolbar cursor-pointer"
+                  v-tooltip="`Voice Typing`"
+                  @click="voiceTyping ? pauseVoiceType() : voiceType()"
+                />
+                <FontAwesomeSolid
+                  icon="file-import"
+                  class="p-0 cursor-pointer icon-toolbar"
+                  v-tooltip="`Import Template`"
+                  @click="replaceWithTemplate()"
+                />
+                <FontAwesomeSolid
+                  icon="rocket"
+                  v-tooltip="`Save as Template`"
+                  class="p-0 cursor-pointer icon-toolbar"
+                  @click="templateCreation()"
+                />
+                <FontAwesomeSolid
+                  :icon="recording ? 'hand' : 'camera'"
+                  v-tooltip="recording ? `Stop Recording` : `Start Recording`"
+                  class="p-0 cursor-pointer icon-toolbar"
+                  @click="recording ? stopRecording() : startRecording()"
+                />
+                <FontAwesomeSolid
+                  icon="eye-slash"
+                  v-tooltip="`Hide All`"
+                  class="p-0 cursor-pointer icon-toolbar"
+                  @click="hideAll()"
+                />
+                <FontAwesomeSolid
+                  icon="angles-right"
+                  v-tooltip="`Show Next`"
+                  class="p-0 cursor-pointer icon-toolbar"
+                  @click="showNext()"
+                />
+              </div>
+            </div>
+            <CodemirrorEditor
+              @change="onChange"
+              :initialValue="code"
+              :diagnostics="diagnostics"
+              :replaceSelection="replaceSelection"
+              :replaceAll="replaceAll"
+              :activeLine="activeLine"
+              :codeFeatures="true"
+              ref="codemirrorEditor"
+            />
+          </TabPanel>
+          <TabPanel class="grid">
+            <CodemirrorEditor
+              @change="configChange"
+              :codeFeatures="false"
+              initialValue="{}"
+            />
+          </TabPanel>
+        </TabPanels>
+      </TabGroup>
     </div>
     <Output
       :fullscreen="fullscreen"

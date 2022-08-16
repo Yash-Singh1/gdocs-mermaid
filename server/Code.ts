@@ -63,7 +63,6 @@ export function applyTemplate(
       .getElement();
 
     const url = `https://mermaid.ink/img/${unique ? type : diagrams[type]}`;
-    console.log(unique, type);
     const index = selectedElement.getParent().getChildIndex(selectedElement);
     let blob = UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getBlob();
     (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)

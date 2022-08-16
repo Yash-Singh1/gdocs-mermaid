@@ -38,6 +38,7 @@ importers:
   dialog:
     specifiers:
       '@codemirror/commands': ^6.0.1
+      '@codemirror/lang-json': ^6.0.0
       '@codemirror/lint': ^6.0.0
       '@codemirror/state': ^6.1.0
       '@codemirror/view': ^6.0.2
@@ -62,6 +63,7 @@ importers:
       vue: ^3.2.37
     dependencies:
       '@codemirror/commands': 6.0.1
+      '@codemirror/lang-json': 6.0.0
       '@codemirror/lint': 6.0.0
       '@codemirror/state': 6.1.0
       '@codemirror/view': 6.0.2
@@ -186,6 +188,13 @@ packages:
       '@codemirror/state': 6.1.0
       '@codemirror/view': 6.0.2
       '@lezer/common': 1.0.0
+    dev: false
+
+  /@codemirror/lang-json/6.0.0:
+    resolution: {integrity: sha512-DvTcYTKLmg2viADXlTdufrT334M9jowe1qO02W28nvm+nejcvhM5vot5mE8/kPrxYw/HJHhwu1z2PyBpnMLCNQ==}
+    dependencies:
+      '@codemirror/language': 6.2.0
+      '@lezer/json': 1.0.0
     dev: false
 
   /@codemirror/language/6.2.0:
@@ -345,6 +354,13 @@ packages:
     resolution: {integrity: sha512-nsCnNtim90UKsB5YxoX65v3GEIw3iCHw9RM2DtdgkiqAbKh9pCdvi8AWNwkYf10Lu6fxNhXPpkpHbW6mihhvJA==}
     dependencies:
       '@lezer/common': 1.0.0
+    dev: false
+
+  /@lezer/json/1.0.0:
+    resolution: {integrity: sha512-zbAuUY09RBzCoCA3lJ1+ypKw5WSNvLqGMtasdW6HvVOqZoCpPr8eWrsGnOVWGKGn8Rh21FnrKRVlJXrGAVUqRw==}
+    dependencies:
+      '@lezer/highlight': 1.0.0
+      '@lezer/lr': 1.2.0
     dev: false
 
   /@lezer/lr/1.2.0:

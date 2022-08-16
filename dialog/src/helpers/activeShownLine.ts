@@ -76,7 +76,6 @@ const activeLineGutterHighlighter = gutterLineClass.compute(
   [activeShownLineField],
   (state) => {
     const stateValue = state.field(activeShownLineField, false);
-    debugger;
     if (!stateValue) {
       return RangeSet.of([]);
     }

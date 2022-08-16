@@ -2,20 +2,22 @@
 import { nextTick, onMounted, ref, watch, type Ref } from 'vue';
 import { basicSetup } from 'codemirror';
 import { EditorView, keymap } from '@codemirror/view';
-import { Diagnostic, setDiagnostics } from '@codemirror/lint';
+import { Diagnostic, setDiagnostics, linter } from '@codemirror/lint';
 import { EditorState, StateField, Text } from '@codemirror/state';
 import { indentWithTab } from '@codemirror/commands';
 import breakpointGutter, { breakpointState } from '../helpers/breakpoints';
 import activeShownLine, {
   activeShownLineEffect,
 } from '../helpers/activeShownLine';
+import { json, jsonParseLinter } from '@codemirror/lang-json';
 
 const props = defineProps<{
   initialValue?: string;
   diagnostics?: Diagnostic;
   replaceSelection?: string;
   replaceAll?: string;
-  activeLine: number | null;
+  activeLine?: number | null;
+  codeFeatures?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -79,7 +81,7 @@ watch(
 watch(
   () => props.activeLine,
   () => {
-    if (view.value) {
+    if (view.value && typeof props.activeLine !== 'undefined') {
       view.value.dispatch({
         effects: activeShownLineEffect.of(props.activeLine),
       });
@@ -108,22 +110,25 @@ onMounted(() => {
     view.value = new EditorView({
       state: EditorState.create({
         extensions: [
-          breakpointGutter({
-            callback: (updatedView) => {
-              const state = updatedView.state.field(breakpointState);
-              breakpoints.value = [];
-              // @ts-ignore -- RangeSet.length does seem to exist on the console, types not up to date
-              state.between(0, state.length, (from) => {
-                breakpoints.value.push(
-                  updatedView.state.doc.lineAt(from).number
-                );
-              });
-            },
-          }),
+          props.codeFeatures
+            ? breakpointGutter({
+                callback: (updatedView) => {
+                  const state = updatedView.state.field(breakpointState);
+                  breakpoints.value = [];
+                  // @ts-ignore -- RangeSet.length does seem to exist on the console, types not up to date
+                  state.between(0, state.length, (from) => {
+                    breakpoints.value.push(
+                      updatedView.state.doc.lineAt(from).number
+                    );
+                  });
+                },
+              })
+            : [],
           basicSetup,
           keymap.of([indentWithTab]),
           listenChangesExtension,
-          activeShownLine(),
+          props.codeFeatures ? activeShownLine() : [],
+          props.codeFeatures ? [] : [json(), linter(jsonParseLinter())],
         ],
         doc: props.initialValue,
       }),
