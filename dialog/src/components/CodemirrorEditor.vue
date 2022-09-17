@@ -146,6 +146,7 @@ onMounted(() => {
 <style>
 #container {
   height: 100%;
+  overflow-x: auto;
 }
 
 .cm-editor {

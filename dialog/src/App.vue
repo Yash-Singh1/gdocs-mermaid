@@ -102,7 +102,7 @@ mermaid.setParseErrorHandler(
 
 const panZoomInstance = ref<null | typeof svgPanZoom>(null);
 
-function refresh(newValue: string, config: any) {
+async function refresh(newValue: string, config: any) {
   code.value = newValue;
   // TODO: Contribute boolean return value to @types/mermaid
   if (!mermaid.parse(code.value)) {
@@ -528,7 +528,7 @@ onMounted(() => {
           >
         </TabList>
         <TabPanels class="basis-full">
-          <TabPanel class="grid grid-rows-[max-content_1fr] tab-panel-code">
+          <TabPanel class="grid grid-rows-[max-content_1fr] overflow-x-hidden tab-panel-code">
             <div class="toolbar text-sm h-9">
               <div
                 class="position-relative h-full border border-silver border-b-0"
@@ -583,7 +583,7 @@ onMounted(() => {
               ref="codemirrorEditor"
             />
           </TabPanel>
-          <TabPanel class="grid">
+          <TabPanel class="grid overflow-x-hidden">
             <CodemirrorEditor
               @change="configChange"
               :codeFeatures="false"
