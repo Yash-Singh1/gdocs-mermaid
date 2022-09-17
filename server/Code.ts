@@ -1,5 +1,7 @@
 import ensureSelected from './helpers/ensureSelected';
 import diagrams from './data/diagrams.json';
+import { fromBase64, toBase64 } from 'js-base64';
+import deserialize from './helpers/deserialize';
 
 export function onInstall() {
   onOpen();
@@ -79,15 +81,12 @@ export function editSelectedDiagram() {
       .getRangeElements()[0]
       .getElement();
     let htmlTemplate = HtmlService.createTemplateFromFile('dialog');
-    htmlTemplate.state = Utilities.newBlob(
-      Utilities.base64Decode(
-        selectedElement
-          .asInlineImage()
-          .getLinkUrl()
-          .slice('https://mermaid.ink/img/'.length),
-        Utilities.Charset.UTF_8
-      )
-    ).getDataAsString();
+    htmlTemplate.state = deserialize(
+      selectedElement
+        .asInlineImage()
+        .getLinkUrl()
+        .slice('https://mermaid.ink/img/'.length)
+    );
     let evaluated = htmlTemplate.evaluate();
     DocumentApp.getUi().showModalDialog(
       evaluated.setWidth(1237.5).setHeight(886.5).setTitle('Flowcast'),
@@ -103,8 +102,10 @@ export function save(code: string) {
       .getRangeElements()[0]
       .getElement();
 
+    console.log(code);
     // TODO: Support pako over here
-    const url = `https://mermaid.ink/img/${Utilities.base64Encode(code)}`;
+    const url = `https://mermaid.ink/img/${toBase64(code, true)}`;
+    console.log(url);
     const index = selectedElement.getParent().getChildIndex(selectedElement);
     let blob = UrlFetchApp.fetch(url).getBlob();
     (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
@@ -127,15 +128,12 @@ export function showTemplating(attachTo: boolean = false) {
     PropertiesService.getUserProperties().getProperties()
   )
     .map((entry) => {
-      return Utilities.base64Encode(
+      return toBase64(
         JSON.stringify({
           name: entry[0],
-          ...JSON.parse(
-            Utilities.newBlob(
-              Utilities.base64Decode(entry[1], Utilities.Charset.UTF_8)
-            ).getDataAsString()
-          ),
-        })
+          ...JSON.parse(fromBase64(entry[1])),
+        }),
+        true
       );
     })
     .join(',');
@@ -156,7 +154,7 @@ interface Template {
 export function createPersonalTemplate(template: Template) {
   PropertiesService.getUserProperties().setProperty(
     template.name,
-    Utilities.base64Encode(
+    toBase64(
       JSON.stringify({
         ...template,
         name: undefined,

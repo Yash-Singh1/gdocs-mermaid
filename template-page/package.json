@@ -6,8 +6,9 @@
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/vue-fontawesome": "^3.0.1",
-    "vue": "^3.2.37",
-    "shared": "workspace:../shared"
+    "js-base64": "^3.7.2",
+    "shared": "workspace:../shared",
+    "vue": "^3.2.37"
   },
   "scripts": {
     "dev": "vite",

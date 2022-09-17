@@ -18,6 +18,7 @@ import type { EditorView } from 'codemirror';
 import regenRecordCanvas from './helpers/regenRecordCanvas';
 import eatUnneededLines from './helpers/eatUnneededLines';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
+import { toBase64 } from 'js-base64';
 
 const props = defineProps<{
   code: string;
@@ -26,18 +27,29 @@ const props = defineProps<{
 
 const code = ref(props.code);
 const config = ref(
-  JSON.stringify(props.mermaid) || JSON.stringify({ theme: 'default' })
+  JSON.stringify(props.mermaid, null, 2) || JSON.stringify({ theme: 'default' }, null, 2)
 );
 const saving = ref(false);
 
 function save() {
   saving.value = true;
+  let parsedConfig;
+  try {
+    parsedConfig = JSON.parse(config.value);
+  } catch {
+    parsedConfig = { theme: 'default' };
+  }
   google.script.run
     .withSuccessHandler(() => {
       saving.value = false;
       google.script.host.close();
     })
-    .save(code.value);
+    .save(
+      JSON.stringify({
+        code: code.value,
+        mermaid: parsedConfig,
+      })
+    );
 }
 
 interface MermaidError {
@@ -138,7 +150,10 @@ function refresh(newValue: string, config: any) {
 
 function onChange(doc: Text) {
   json.value = doc.toJSON();
-  refresh(doc.toString(), JSON.parse(config.value));
+  try {
+    let parsed = JSON.parse(config.value);
+    refresh(doc.toString(), parsed);
+  } catch {}
 }
 
 const fullscreen = ref(false);
@@ -382,7 +397,7 @@ function createTemplate() {
   const template = {
     name: templateName.value,
     description: templateDescription.value,
-    code: btoa((json.value || []).join('\n')),
+    code: toBase64((json.value || []).join('\n')),
   };
   google.script.run.createPersonalTemplate(template);
 }
@@ -458,7 +473,10 @@ function showNext() {
 
 function configChange(newConfig: Text) {
   config.value = newConfig.toJSON().join('\n');
-  refresh(json.value!.join('\n'), JSON.parse(config.value));
+  try {
+    let parsed = JSON.parse(config.value);
+    refresh(json.value!.join('\n'), parsed);
+  } catch {}
 }
 
 const activeTab = ref(false);
@@ -497,13 +515,15 @@ onMounted(() => {
   <div class="row flex flex-wrap">
     <div class="col-6 flex flex-col">
       <TabGroup @change="activeTab = !activeTab">
-        <TabList
-          class="pt-[2px] pl-1 rounded-t-md bg-gray-200 flex gap-x-2"
-        >
-          <Tab class="py-1 px-2 text-sm text-white rounded-t-lg bg-blue-500" :class="activeTab ? '' : 'border-2 border-blue-500'"
+        <TabList class="pt-[2px] pl-1 rounded-t-md bg-gray-200 flex gap-x-2">
+          <Tab
+            class="py-1 px-2 text-sm text-white rounded-t-lg bg-blue-500"
+            :class="activeTab ? '' : 'border-2 border-blue-500'"
             >Markup</Tab
           >
-          <Tab class="pt-1 px-2 text-sm text-white rounded-t-lg bg-blue-500" :class="activeTab ? 'border-2 border-blue-500' : ''"
+          <Tab
+            class="pt-1 px-2 text-sm text-white rounded-t-lg bg-blue-500"
+            :class="activeTab ? 'border-2 border-blue-500' : ''"
             >Config</Tab
           >
         </TabList>
@@ -567,7 +587,7 @@ onMounted(() => {
             <CodemirrorEditor
               @change="configChange"
               :codeFeatures="false"
-              initialValue="{}"
+              :initialValue="config"
             />
           </TabPanel>
         </TabPanels>
