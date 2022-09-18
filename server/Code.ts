@@ -1,7 +1,7 @@
 import ensureSelected from './helpers/ensureSelected';
 import diagrams from './data/diagrams.json';
-import { fromBase64, toBase64 } from 'js-base64';
 import deserialize from './helpers/deserialize';
+import serialize from './helpers/serialize';
 
 export function onInstall() {
   onOpen();
@@ -36,7 +36,9 @@ export function newDiagram(
   type: typeof unique extends true ? string : keyof typeof diagrams = 'blank',
   unique: boolean
 ) {
-  let url = `https://mermaid.ink/img/${unique ? type : diagrams[type]}`;
+  let url = `https://mermaid.ink/img/${
+    unique ? type : serialize(JSON.stringify(diagrams[type]), 'pako')
+  }`;
   let blob = UrlFetchApp.fetch(url).getBlob();
   let cursor = DocumentApp.getActiveDocument().getCursor();
   if (cursor) {
@@ -64,7 +66,9 @@ export function applyTemplate(
       .getRangeElements()[0]
       .getElement();
 
-    const url = `https://mermaid.ink/img/${unique ? type : diagrams[type]}`;
+    const url = `https://mermaid.ink/img/${
+      unique ? type : serialize(JSON.stringify(diagrams[type]), 'pako')
+    }`;
     const index = selectedElement.getParent().getChildIndex(selectedElement);
     let blob = UrlFetchApp.fetch(url, { muteHttpExceptions: true }).getBlob();
     (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
@@ -103,8 +107,7 @@ export function save(code: string) {
       .getElement();
 
     console.log(code);
-    // TODO: Support pako over here
-    const url = `https://mermaid.ink/img/${toBase64(code, true)}`;
+    const url = `https://mermaid.ink/img/${serialize(code, 'pako')}`;
     console.log(url);
     const index = selectedElement.getParent().getChildIndex(selectedElement);
     let blob = UrlFetchApp.fetch(url).getBlob();
@@ -128,12 +131,15 @@ export function showTemplating(attachTo: boolean = false) {
     PropertiesService.getUserProperties().getProperties()
   )
     .map((entry) => {
-      return toBase64(
+      return Utilities.base64Encode(
         JSON.stringify({
           name: entry[0],
-          ...JSON.parse(fromBase64(entry[1])),
-        }),
-        true
+          ...JSON.parse(
+            Utilities.newBlob(
+              Utilities.base64Decode(entry[1])
+            ).getDataAsString()
+          ),
+        })
       );
     })
     .join(',');
@@ -154,7 +160,7 @@ interface Template {
 export function createPersonalTemplate(template: Template) {
   PropertiesService.getUserProperties().setProperty(
     template.name,
-    toBase64(
+    Utilities.base64Encode(
       JSON.stringify({
         ...template,
         name: undefined,
