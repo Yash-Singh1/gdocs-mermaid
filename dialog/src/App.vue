@@ -27,7 +27,8 @@ const props = defineProps<{
 
 const code = ref(props.code);
 const config = ref(
-  JSON.stringify(props.mermaid, null, 2) || JSON.stringify({ theme: 'default' }, null, 2)
+  JSON.stringify(props.mermaid, null, 2) ||
+    JSON.stringify({ theme: 'default' }, null, 2)
 );
 const saving = ref(false);
 
@@ -48,7 +49,23 @@ function save() {
       JSON.stringify({
         code: code.value,
         mermaid: parsedConfig,
-      })
+      }),
+      (document.getElementById('record') as HTMLCanvasElement)
+        .toDataURL(
+          'image/jpeg',
+          0.0000000001
+          // parseInt(
+          //   (
+          //     document.getElementById('record') as HTMLCanvasElement
+          //   ).getAttribute('width')!,
+          //   10
+          // ) / 20000
+        )
+        .slice('data:image/jpeg;base64,'.length),
+      [
+        parseInt(document.getElementById('record')?.getAttribute('width')!, 10) / 10,
+        parseInt(document.getElementById('record')?.getAttribute('height')!, 10) / 10,
+      ]
     );
 }
 
@@ -528,7 +545,9 @@ onMounted(() => {
           >
         </TabList>
         <TabPanels class="basis-full">
-          <TabPanel class="grid grid-rows-[max-content_1fr] overflow-x-hidden tab-panel-code">
+          <TabPanel
+            class="grid grid-rows-[max-content_1fr] overflow-x-hidden tab-panel-code"
+          >
             <div class="toolbar text-sm h-9">
               <div
                 class="position-relative h-full border border-silver border-b-0"

@@ -99,21 +99,24 @@ export function editSelectedDiagram() {
   }
 }
 
-export function save(code: string) {
+export function save(code: string, dataUri: string, [width, height]: [number, number]) {
   if (ensureSelected('Select a Flowcast diagram to edit one')) {
     let selectedElement = DocumentApp.getActiveDocument()
       .getSelection()
       .getRangeElements()[0]
       .getElement();
 
-    console.log(code);
     const url = `https://mermaid.ink/img/${serialize(code, 'pako')}`;
-    console.log(url);
+
     const index = selectedElement.getParent().getChildIndex(selectedElement);
-    let blob = UrlFetchApp.fetch(url).getBlob();
+    let blob = Utilities.newBlob(
+      Utilities.base64Decode(dataUri)
+    );
     (selectedElement.getParent() as GoogleAppsScript.Document.Paragraph)
       .insertInlineImage(index + 1, blob)
-      .setLinkUrl(url);
+      .setLinkUrl(url)
+      .setWidth(width)
+      .setHeight(height);
     selectedElement.getParent().getChild(index).removeFromParent();
   }
 }
