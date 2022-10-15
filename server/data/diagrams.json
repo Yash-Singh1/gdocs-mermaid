@@ -1,17 +1,27 @@
 {
   "blank": {
-    "code": "sequenceDiagram \nAlice->>+John: Hello John, how are you?\nAlice->>+John: John, can you hear me?\nJohn-->>-Alice: Hi Alice, I can hear you!\nJohn-->>-Alice: I feel great!\n\n"
+    "code": "sequenceDiagram \nAlice->>+John: Hello John, how are you?\nAlice->>+John: John, can you hear me?\nJohn-->>-Alice: Hi Alice, I can hear you!\nJohn-->>-Alice: I feel great!\n\n",
+    "width": 400,
+    "height": 333
   },
   "sequenceDiagram": {
-    "code": "sequenceDiagram \nAlice->>+John: Hello John, how are you?\nAlice->>+John: John, can you hear me?\nJohn-->>-Alice: Hi Alice, I can hear you!\nJohn-->>-Alice: I feel great!\n\n"
+    "code": "sequenceDiagram \nAlice->>+John: Hello John, how are you?\nAlice->>+John: John, can you hear me?\nJohn-->>-Alice: Hi Alice, I can hear you!\nJohn-->>-Alice: I feel great!\n\n",
+    "width": 333,
+    "height": 400
   },
   "gitGraph": {
-    "code": "    gitGraph\n      commit\n      commit\n      branch develop\n      checkout develop\n      commit\n      commit\n      checkout main\n      merge develop\n      commit\n      commit\n"
+    "code": "    gitGraph\n      commit\n      commit\n      branch develop\n      checkout develop\n      commit\n      commit\n      checkout main\n      merge develop\n      commit\n      commit\n",
+    "width": 476,
+    "height": 173
   },
   "flowchart": {
-    "code": "    graph TD\n    A[Christmas] -->|Get money| B(Go shopping)\n    B --> C{Let me think}\n    C -->|One| D[Laptop]\n    C -->|Two| E[iPhone]\n    C -->|Three| F[fa:fa-car Car]\n"
+    "code": "    graph TD\n    A[Christmas] -->|Get money| B(Go shopping)\n    B --> C{Let me think}\n    C -->|One| D[Laptop]\n    C -->|Two| E[iPhone]\n    C -->|Three| F[fa:fa-car Car]\n",
+    "width": 296,
+    "height": 465
   },
   "pie": {
-    "code": "pie title Pets adopted by volunteers\n    \"Dogs\" : 386\n    \"Cats\" : 85\n    \"Rats\" : 15\n            "
+    "code": "pie title Pets adopted by volunteers\n    \"Dogs\" : 386\n    \"Cats\" : 85\n    \"Rats\" : 15\n            ",
+    "width": 461,
+    "height": 368
   }
 }

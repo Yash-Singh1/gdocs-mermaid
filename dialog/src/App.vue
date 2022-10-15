@@ -19,6 +19,8 @@ import regenRecordCanvas from './helpers/regenRecordCanvas';
 import eatUnneededLines from './helpers/eatUnneededLines';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
 import { toBase64 } from 'js-base64';
+import merge from 'deepmerge';
+import clampDimensions from './helpers/clampDimensions';
 
 const props = defineProps<{
   code: string;
@@ -50,22 +52,19 @@ function save() {
         code: code.value,
         mermaid: parsedConfig,
       }),
-      (document.getElementById('record') as HTMLCanvasElement)
-        .toDataURL(
-          'image/jpeg',
-          0.0000000001
-          // parseInt(
-          //   (
-          //     document.getElementById('record') as HTMLCanvasElement
-          //   ).getAttribute('width')!,
-          //   10
-          // ) / 20000
-        )
-        .slice('data:image/jpeg;base64,'.length),
-      [
-        parseInt(document.getElementById('record')?.getAttribute('width')!, 10) / 10,
-        parseInt(document.getElementById('record')?.getAttribute('height')!, 10) / 10,
-      ]
+      clampDimensions(
+        [
+          parseFloat(
+            document.getElementById('record')?.getAttribute('width')!
+          ) / 10,
+          parseFloat(
+            document.getElementById('record')?.getAttribute('height')!
+          ) /
+            10 -
+            (findDiagramType(json.value!) === 'pie' ? 38.3 : 0),
+        ],
+        [623, Infinity]
+      )
     );
 }
 
@@ -118,6 +117,7 @@ mermaid.setParseErrorHandler(
 );
 
 const panZoomInstance = ref<null | typeof svgPanZoom>(null);
+const widthHeightCache = ref<[number, number] | null>(null);
 
 async function refresh(newValue: string, config: any) {
   code.value = newValue;
@@ -125,7 +125,16 @@ async function refresh(newValue: string, config: any) {
   if (!mermaid.parse(code.value)) {
     return;
   }
-  mermaid.initialize(config || { theme: 'default' });
+  mermaid.initialize(
+    merge(
+      {
+        pie: {
+          useWidth: '600',
+        },
+      },
+      config || { theme: 'default' }
+    )
+  );
   try {
     mermaid.render('diagram', code.value, (svg) => {
       if (svg.length > 0) {
@@ -139,6 +148,8 @@ async function refresh(newValue: string, config: any) {
         const storedSvg = svgEl.outerHTML;
         const width = document.getElementById('output')!.offsetWidth;
         diagnostics.value = undefined;
+        let { width: svgWidth, height: svgHeight } = svgEl.getBBox();
+        widthHeightCache.value = [svgWidth, svgHeight];
         panZoomInstance.value = svgPanZoom(svgEl, {
           zoomEnabled: true,
           minZoom: 0.1,
@@ -151,11 +162,11 @@ async function refresh(newValue: string, config: any) {
         nextTick(() => {
           svgEl.style.width = '100%';
           resetPanZoomInstance(panZoomInstance.value);
-          regenRecordCanvas(storedSvg);
+          regenRecordCanvas(storedSvg, svgWidth, svgHeight);
           const interval = setInterval(() => {
             if (width !== document.getElementById('output')!.offsetWidth) {
               resetPanZoomInstance(panZoomInstance.value);
-              regenRecordCanvas(storedSvg);
+              regenRecordCanvas(storedSvg, svgWidth, svgHeight);
               clearInterval(interval);
             }
           }, 50);
@@ -411,10 +422,19 @@ function createTemplate() {
   if (templateName.value.length === 0) {
     return;
   }
+  let parsedConfig;
+  try {
+    parsedConfig = JSON.parse(config.value);
+  } catch {
+    parsedConfig = { theme: 'default' };
+  }
   const template = {
     name: templateName.value,
     description: templateDescription.value,
     code: toBase64((json.value || []).join('\n')),
+    mermaid: parsedConfig,
+    width: widthHeightCache.value![0],
+    height: widthHeightCache.value![1],
   };
   google.script.run.createPersonalTemplate(template);
 }
@@ -677,10 +697,6 @@ svg {
 
 .col-6 {
   width: 50%;
-}
-
-.hidden {
-  display: none;
 }
 
 .close-voice {

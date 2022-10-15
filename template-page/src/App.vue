@@ -41,7 +41,7 @@ function insert(type: string | CustomTemplate) {
       google.script.host.close();
     })
     [props.attachTo ? 'applyTemplate' : 'newDiagram'](
-      typeof type === 'string' ? type : type.code,
+      type as string | {},
       typeof type !== 'string'
     );
 }

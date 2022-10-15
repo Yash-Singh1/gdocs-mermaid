@@ -15,7 +15,7 @@ export default function ensureSelected(actionMsg: string) {
     !diagramElement
       .asInlineImage()
       .getLinkUrl()
-      .startsWith('https://mermaid.ink/img/')
+      .startsWith('https://mermaid-res.fly.dev/img/')
   ) {
     const ui = DocumentApp.getUi();
     ui.alert(actionMsg, ui.ButtonSet.OK);

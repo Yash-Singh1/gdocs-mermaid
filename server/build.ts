@@ -30,7 +30,9 @@ async function run() {
             const [_imports, exports] = parse(file.text);
             file.contents = Buffer.from(
               `${file.text}\n${storedExports!
-                .map((e) => `function ${e.n}(...args) {Module.${e.n}(...args);}`)
+                .map(
+                  (e) => `function ${e.n}(...args) {Module.${e.n}(...args);}`
+                )
                 .join('\n')}`
             );
           }
@@ -44,7 +46,9 @@ async function run() {
     entryPoints: ['server/Code.ts'],
     bundle: true,
     plugins: [unwrapTopLevel],
-    minify: false,
+    minifyIdentifiers: false,
+    minifySyntax: true,
+    minifyWhitespace: true,
     write: false,
     logLevel: 'info',
     globalName: 'Module',
