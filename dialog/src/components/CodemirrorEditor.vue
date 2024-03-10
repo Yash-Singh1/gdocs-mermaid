@@ -115,7 +115,7 @@ onMounted(() => {
                 callback: (updatedView) => {
                   const state = updatedView.state.field(breakpointState);
                   breakpoints.value = [];
-                  // @ts-expect-error -- RangeSet.length does seem to exist on the console, types not up to date
+                  // @ts-expect-error -- RangeSet.length is an internal field, but we need it
                   state.between(0, state.length, (from) => {
                     breakpoints.value.push(
                       updatedView.state.doc.lineAt(from).number
