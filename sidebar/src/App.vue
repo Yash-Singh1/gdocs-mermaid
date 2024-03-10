@@ -7,7 +7,7 @@ import {
   faCircleNotch,
 } from '@fortawesome/free-solid-svg-icons';
 import { ref, provide } from 'vue';
-import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
+import FontAwesomeSolid from '@/shared/components/FontAwesomeSolid.vue';
 
 const props = defineProps<{ reduced: boolean }>();
 

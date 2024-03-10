@@ -4,7 +4,7 @@ import CodemirrorEditor from './components/CodemirrorEditor.vue';
 import mermaid from 'mermaid';
 import type { Diagnostic } from '@codemirror/lint';
 import { Text } from '@codemirror/state';
-import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
+import FontAwesomeSolid from '@/shared/components/FontAwesomeSolid.vue';
 import svgPanZoom from 'svg-pan-zoom';
 import Modal from './components/Modal.vue';
 import calculateIndexForPosition from './helpers/calculateIndexForPosition';

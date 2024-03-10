@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import flowchart from '../assets/flowchart.svg?raw';
 import { inject } from 'vue';
-import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
+import FontAwesomeSolid from '@/shared/components/FontAwesomeSolid.vue';
 import CustomTemplate from '../types/CustomTemplate';
 
 const img = `data:image/svg+xml;base64,${btoa(flowchart)}`;

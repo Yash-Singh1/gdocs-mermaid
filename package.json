@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
-    "build": "rm -rf dist/ && mkdir dist/ && cp appsscript.json public/; pnpm --filter sidebar --filter template-page --filter dialog run --parallel build && mv dialog/dist/index.html dist/dialog.html && mv sidebar/dist/index.html dist/sidebar.html && mv template-page/dist/index.html dist/template-page.html && for f in $(ls -a public/ | tail -n +3); do cp public/$f dist/; done; pnpm -w run build:server && mv server/Code.js dist/Code.gs",
+    "build": "vite build",
     "build:dev": "rm -rf dist/ && mkdir dist/ && cp appsscript.json public/; pnpm --filter sidebar --filter template-page --filter dialog run --parallel build --mode development && mv dialog/dist/index.html dist/dialog.html && mv sidebar/dist/index.html dist/sidebar.html && mv template-page/dist/index.html dist/template-page.html && for f in $(ls -a public/ | tail -n +3); do cp public/$f dist/; done; pnpm -w run build:server && mv server/Code.js dist/Code.gs",
     "build:server": "node -r esbuild-runner/register ./server/build.ts > ./server/Code.js",
     "build:watch": "# TODO: Fix this\nnodemon --exec 'pnpm run build'",
@@ -28,16 +28,17 @@
   },
   "devDependencies": {
     "@google/clasp": "^2.4.1",
+    "@rollup/plugin-alias": "^5.1.0",
     "@types/google-apps-script": "^1.0.49",
     "@types/node": "^18.0.0",
     "@types/pako": "^2.0.0",
-    "@vitejs/plugin-vue": "^2.3.3",
+    "@vitejs/plugin-vue": "^3.2.0",
     "esbuild": "^0.14.48",
     "esbuild-runner": "^2.2.1",
     "nodemon": "^2.0.19",
     "ts-node": "^10.8.2",
     "typescript": "^4.7.4",
-    "vite": "^2.9.13",
+    "vite": "^3.2.8",
     "vue-tsc": "^0.35.2"
   }
 }

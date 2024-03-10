@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FontAwesomeSolid from 'shared/components/FontAwesomeSolid.vue';
+import FontAwesomeSolid from '@/shared/components/FontAwesomeSolid.vue';
 
 defineProps<{ fullscreen: boolean; saving: boolean }>();
 const emit = defineEmits<{

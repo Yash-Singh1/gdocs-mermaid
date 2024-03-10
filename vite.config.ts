@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import * as path from 'node:path';
+import rollupPluginAlias from '@rollup/plugin-alias';
 
 // TODO: Remove this when vite-plugin-singlefile merges PRs and releases
 // Need to rewrite vite-plugin-singlefile due to edge case accounting and bugs
@@ -45,22 +47,6 @@ export function vitePluginInlineCSS() {
   };
 }
 
-export function replacejs(
-  html: string,
-  scriptFilename: string,
-  scriptCode: string
-): string {
-  const reScript = new RegExp(
-    `<script([^>]*?)src="[./]*${scriptFilename}"([^>]*)></script>`
-  );
-  const inlined = html.replace(
-    reScript,
-    (_, beforeSrc, afterSrc) =>
-      `<script${beforeSrc}${afterSrc}>\n//${scriptFilename}\n${scriptCode}\n</script>`
-  );
-  return inlined;
-}
-
 export function vitePluginInlinejs() {
   return {
     name: 'inline-js',
@@ -71,56 +57,78 @@ export function vitePluginInlinejs() {
       for (const htmlFile of htmlFiles) {
         const htmlChunk = bundle[htmlFile];
         let replacedHtml = htmlChunk.source;
+        console.log(replacedHtml)
 
         for (const jsName of jsAssets) {
-          const cssChunk = bundle[jsName];
-          replacedHtml = replacejs(
-            replacedHtml,
-            cssChunk.fileName,
-            cssChunk.code
+          const jsChunk = bundle[jsName];
+          const reScript = new RegExp(
+            `<script([^>]*?)src="[./]*${jsChunk.fileName}"([^>]*)></script>`
           );
+          const inlined = replacedHtml.replace(reScript, () => {
+            return `<?!= include('${jsChunk.fileName}'); ?>`;
+          });
+          replacedHtml = inlined;
         }
         htmlChunk.source = replacedHtml;
       }
       for (const jsName of jsAssets) {
-        delete bundle[jsName];
+        bundle[
+          jsName
+        ].code = `<script>\n//${bundle[jsName].fileName}\n${bundle[jsName].code}\n</script>`;
       }
     },
   };
 }
 
-function configBuilder(input) {
+function configBuilder() {
   return defineConfig(({ mode }) => ({
     optimizeDeps: {
       disabled: mode === 'production',
       include: ['shared'],
     },
-    plugins: [vue(), vitePluginInlineCSS(), vitePluginInlinejs()],
+    plugins: [
+      vue(),
+      vitePluginInlinejs(),
+      vitePluginInlineCSS(),
+      rollupPluginAlias({
+        entries: {
+          '@': path.resolve(__dirname, '.'),
+        },
+      }),
+    ],
     build: {
       emptyOutDir: true,
       target: 'es2015',
       rollupOptions: {
-        input,
+        input: {
+          'template-page': './template-page/index.html',
+          'dialog': './dialog/index.html',
+          'sidebar': './sidebar/index.html',
+        },
         output: {
           entryFileNames: `[name].js`,
           chunkFileNames: `[name].js`,
           assetFileNames: `[name].[ext]`,
           inlineDynamicImports: false,
-          format: 'iife',
+          format: 'amd',
           // Disable code-splitting to allow iife (immediately invoked function expression)
           manualChunks: () => {
-            return 'index';
+            return undefined;
           },
+        },
+      },
+      resolve: {
+        alias: {
+          '@': path.resolve(__dirname, '.'),
         },
       },
       cssCodeSplit: false,
       assetsInlineLimit: 100_000_000_000,
       chunkSizeWarningLimit: 100_000_000_000,
-      assetsDir: '.',
       reportCompressedSize: false,
       minify: mode === 'production',
     },
   }));
 }
 
-export default configBuilder;
+export default configBuilder();
