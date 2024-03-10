@@ -1,5 +1,5 @@
 import ensureSelected from './helpers/ensureSelected';
-import diagrams from './data/diagrams.json';
+import * as diagrams from './data/diagrams.json';
 import deserialize from './helpers/deserialize';
 import serialize from './helpers/serialize';
 

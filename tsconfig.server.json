@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
   "files": ["server/Code.ts"],
-  "include": ["server/**/*.d.ts"]
+  "exclude": ["node_modules", "dist"],
+  "include": ["server/**/*.d.ts", "server/**/*.json"]
 }
