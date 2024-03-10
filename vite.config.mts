@@ -82,10 +82,6 @@ export function vitePluginInlinejs() {
 
 function configBuilder() {
   return defineConfig(({ mode }) => ({
-    optimizeDeps: {
-      disabled: mode === 'production',
-      include: ['shared'],
-    },
     plugins: [
       vue(),
       vitePluginInlinejs(),
