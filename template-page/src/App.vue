@@ -7,7 +7,7 @@ import {
   faCircleNotch,
 } from '@fortawesome/free-solid-svg-icons';
 import Template from './components/Template.vue';
-import { ref, provide, toRef } from 'vue';
+import { ref, provide } from 'vue';
 import CustomTemplate from './types/CustomTemplate';
 
 let inserting = ref(false);

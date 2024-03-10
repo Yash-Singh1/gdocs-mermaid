@@ -1,10 +1,7 @@
-import { defineConfig } from 'vite';
+import { type Plugin, defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import * as path from 'node:path';
 import rollupPluginAlias from '@rollup/plugin-alias';
-
-// TODO: Remove this when vite-plugin-singlefile merges PRs and releases
-// Need to rewrite vite-plugin-singlefile due to edge case accounting and bugs
 
 export function replaceCss(
   html: string,
@@ -57,7 +54,7 @@ export function vitePluginInlinejs() {
       for (const htmlFile of htmlFiles) {
         const htmlChunk = bundle[htmlFile];
         let replacedHtml = htmlChunk.source;
-        console.log(replacedHtml)
+        console.log(replacedHtml);
 
         for (const jsName of jsAssets) {
           const jsChunk = bundle[jsName];
@@ -80,17 +77,49 @@ export function vitePluginInlinejs() {
   };
 }
 
+const state = new Map<string, string>();
+
+function htmlState() {
+  return {
+    name: 'html-state',
+    enforce: 'post' as const,
+    configureServer: (server) => {
+      server.middlewares.use((req, res, next) => {
+        if (req.method === 'GET' && req.url === '/__rscongas/state') {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(state.get(new URL(req.url).searchParams.get('id')!));
+          return;
+        } else if (req.method === 'POST' && req.url === '/__rscongas/state') {
+          let jsonString = '';
+          req.on('data', (chunk) => {
+            jsonString += chunk;
+          });
+          req.on('end', () => {
+            state.set(new URL(req.url).searchParams.get('id')!, jsonString);
+            res.setHeader('Content-Type', 'application/json');
+            res.end('{}');
+          });
+          return;
+        }
+        next();
+      });
+    },
+  } satisfies Plugin;
+}
+
 function configBuilder() {
   return defineConfig(({ mode }) => ({
     plugins: [
       vue(),
-      vitePluginInlinejs(),
-      vitePluginInlineCSS(),
+      ...(mode === 'production'
+        ? [vitePluginInlinejs(), vitePluginInlineCSS()]
+        : []),
       rollupPluginAlias({
         entries: {
           '@': path.resolve(__dirname, '.'),
         },
       }),
+      htmlState(),
     ],
     build: {
       emptyOutDir: true,
@@ -108,7 +137,11 @@ function configBuilder() {
           inlineDynamicImports: false,
           format: 'amd',
           // Disable code-splitting to allow iife (immediately invoked function expression)
-          manualChunks: () => {
+          manualChunks: (id) => {
+            // No code splitting code below
+            // if (id.endsWith('.html')) {
+            //   return `${id.split('/').at(-2)}.html`;
+            // }
             return undefined;
           },
         },

@@ -201,31 +201,35 @@ export function save(code: string, [width, height]: [number, number]) {
   }
 }
 
+interface Template {
+  name: string;
+  description: string;
+  code: string;
+}
+
 export function showTemplating(attachTo: boolean = false) {
   let htmlTemplate = HtmlService.createTemplateFromFile('template-page');
+  let state: { attachTo: 'true' | 'false'; templates: string } = {
+    attachTo: attachTo ? 'true' : 'false',
+    templates: Object.entries(
+      PropertiesService.getUserProperties().getProperties()
+    )
+      .map((entry) => {
+        return Utilities.base64Encode(
+          JSON.stringify({
+            name: entry[0],
+            ...JSON.parse(
+              Utilities.newBlob(
+                Utilities.base64Decode(entry[1])
+              ).getDataAsString()
+            ),
+          })
+        );
+      })
+      .join(','),
+  };
 
-  if (attachTo === true) {
-    htmlTemplate.attachTo = 'true';
-  } else {
-    htmlTemplate.attachTo = 'false';
-  }
-
-  htmlTemplate.templates = Object.entries(
-    PropertiesService.getUserProperties().getProperties()
-  )
-    .map((entry) => {
-      return Utilities.base64Encode(
-        JSON.stringify({
-          name: entry[0],
-          ...JSON.parse(
-            Utilities.newBlob(
-              Utilities.base64Decode(entry[1])
-            ).getDataAsString()
-          ),
-        })
-      );
-    })
-    .join(',');
+  htmlTemplate.state = JSON.stringify(state);
 
   let evaluated = htmlTemplate.evaluate();
   DocumentApp.getUi().showModalDialog(
