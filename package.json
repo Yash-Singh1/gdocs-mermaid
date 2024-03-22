@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --mode development",
     "build:dev": "rm -rf dist/ && mkdir dist/ && cp appsscript.json public/; pnpm --filter sidebar --filter template-page --filter dialog run --parallel build --mode development && mv dialog/dist/index.html dist/dialog.html && mv sidebar/dist/index.html dist/sidebar.html && mv template-page/dist/index.html dist/template-page.html && for f in $(ls -a public/ | tail -n +3); do cp public/$f dist/; done; pnpm -w run build:server && mv server/Code.js dist/Code.gs",
     "build:server": "node -r esbuild-runner/register ./server/build.ts > ./server/Code.js",
     "build:watch": "# TODO: Fix this\nnodemon --exec 'pnpm run build'",

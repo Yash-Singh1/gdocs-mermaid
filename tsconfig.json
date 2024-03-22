@@ -17,15 +17,11 @@
     }
   },
   "include": [
-    "sidebar/**/*.ts",
-    "sidebar/**/*.d.ts",
-    "sidebar/**/*.tsx",
-    "sidebar/**/*.vue",
-    "dialog/**/*.ts",
-    "dialog/**/*.d.ts",
-    "dialog/**/*.tsx",
-    "dialog/**/*.vue",
-    "server/**/*.ts"
+    "routes/**/*.ts",
+    "routes/**/*.d.ts",
+    "routes/**/*.tsx",
+    "routes/**/*.vue",
+    "server/**/*.ts",
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,9 +1,10 @@
 import { type Plugin, defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import * as path from 'node:path';
+import { resolve } from 'node:path';
 import rollupPluginAlias from '@rollup/plugin-alias';
+import { readdirSync } from 'node:fs';
 
-export function replaceCss(
+function replaceCss(
   html: string,
   cssFilename: string,
   cssCode: string
@@ -16,7 +17,7 @@ export function replaceCss(
   return inlined;
 }
 
-export function vitePluginInlineCSS() {
+function vitePluginInlineCSS() {
   return {
     name: 'inline-css',
     enforce: 'post' as const,
@@ -44,7 +45,7 @@ export function vitePluginInlineCSS() {
   };
 }
 
-export function vitePluginInlinejs() {
+function vitePluginInlinejs() {
   return {
     name: 'inline-js',
     enforce: 'post' as const,
@@ -54,7 +55,6 @@ export function vitePluginInlinejs() {
       for (const htmlFile of htmlFiles) {
         const htmlChunk = bundle[htmlFile];
         let replacedHtml = htmlChunk.source;
-        console.log(replacedHtml);
 
         for (const jsName of jsAssets) {
           const jsChunk = bundle[jsName];
@@ -71,93 +71,111 @@ export function vitePluginInlinejs() {
       for (const jsName of jsAssets) {
         bundle[
           jsName
-        ].code = `<script>\n//${bundle[jsName].fileName}\n${bundle[jsName].code}\n</script>`;
+        ].code = `<script type=module crossorigin>\n//${bundle[jsName].fileName}\n${bundle[jsName].code}\n</script>`;
       }
     },
   };
 }
 
-const state = new Map<string, string>();
-
-function htmlState() {
+function rewriteFiles() {
+  // Rewrites files in preparation for GAS deployment and better HMR
   return {
-    name: 'html-state',
+    name: 'rewrite-files',
     enforce: 'post' as const,
-    configureServer: (server) => {
-      server.middlewares.use((req, res, next) => {
-        if (req.method === 'GET' && req.url === '/__rscongas/state') {
-          res.setHeader('Content-Type', 'application/json');
-          res.end(state.get(new URL(req.url).searchParams.get('id')!));
-          return;
-        } else if (req.method === 'POST' && req.url === '/__rscongas/state') {
-          let jsonString = '';
-          req.on('data', (chunk) => {
-            jsonString += chunk;
-          });
-          req.on('end', () => {
-            state.set(new URL(req.url).searchParams.get('id')!, jsonString);
-            res.setHeader('Content-Type', 'application/json');
-            res.end('{}');
-          });
-          return;
+    generateBundle(_, bundle) {
+      for (const bundleKey in bundle) {
+        if (bundleKey.endsWith('.html')) {
+          bundle[bundleKey].fileName = bundleKey.replace(
+            /^routes\/(.*?)\/index(.html)/,
+            '$1$2'
+          );
         }
-        next();
-      });
+      }
     },
   } satisfies Plugin;
 }
 
-function configBuilder() {
-  return defineConfig(({ mode }) => ({
-    plugins: [
-      vue(),
-      ...(mode === 'production'
-        ? [vitePluginInlinejs(), vitePluginInlineCSS()]
-        : []),
-      rollupPluginAlias({
-        entries: {
-          '@': path.resolve(__dirname, '.'),
-        },
-      }),
-      htmlState(),
-    ],
-    build: {
-      emptyOutDir: true,
-      target: 'es2015',
-      rollupOptions: {
-        input: {
-          'template-page': './template-page/index.html',
-          'dialog': './dialog/index.html',
-          'sidebar': './sidebar/index.html',
-        },
-        output: {
-          entryFileNames: `[name].js`,
-          chunkFileNames: `[name].js`,
-          assetFileNames: `[name].[ext]`,
-          inlineDynamicImports: false,
-          format: 'amd',
-          // Disable code-splitting to allow iife (immediately invoked function expression)
-          manualChunks: (id) => {
-            // No code splitting code below
-            // if (id.endsWith('.html')) {
-            //   return `${id.split('/').at(-2)}.html`;
-            // }
-            return undefined;
-          },
-        },
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        },
-      },
-      cssCodeSplit: false,
-      assetsInlineLimit: 100_000_000_000,
-      chunkSizeWarningLimit: 100_000_000_000,
-      reportCompressedSize: false,
-      minify: mode === 'production',
-    },
-  }));
-}
+// const state = new Map<string, string>();
 
-export default configBuilder();
+// function htmlState() {
+//   return {
+//     name: 'html-state',
+//     enforce: 'post' as const,
+//     configureServer: (server) => {
+//       server.middlewares.use((req, res, next) => {
+//         if (req.method === 'GET' && req.url === '/__rscongas/state') {
+//           res.setHeader('Content-Type', 'application/json');
+//           res.end(state.get(new URL(req.url).searchParams.get('id')!));
+//           return;
+//         } else if (req.method === 'POST' && req.url === '/__rscongas/state') {
+//           let jsonString = '';
+//           req.on('data', (chunk) => {
+//             jsonString += chunk;
+//           });
+//           req.on('end', () => {
+//             state.set(new URL(req.url).searchParams.get('id')!, jsonString);
+//             res.setHeader('Content-Type', 'application/json');
+//             res.end('{}');
+//           });
+//           return;
+//         }
+//         next();
+//       });
+//     },
+//   } satisfies Plugin;
+// }
+
+const config = defineConfig(({ mode }) => ({
+  plugins: [
+    vue(),
+    ...(mode === 'production'
+      ? [vitePluginInlinejs(), vitePluginInlineCSS()]
+      : []),
+    rollupPluginAlias({
+      entries: {
+        '@': resolve(__dirname, '.'),
+      },
+    }),
+    // htmlState(),
+    rewriteFiles(),
+  ],
+  build: {
+    emptyOutDir: true,
+    target: 'es2015',
+    rollupOptions: {
+      input: Object.fromEntries(
+        readdirSync(resolve(__dirname, './routes')).map((route) => [
+          route,
+          resolve(__dirname, './routes', route, './index.html'),
+        ])
+      ),
+      output: {
+        entryFileNames: `[name].js`,
+        chunkFileNames: `[name].js`,
+        assetFileNames: `[name].[ext]`,
+        inlineDynamicImports: false,
+        format: 'amd',
+        // Disable code-splitting to allow iife (immediately invoked function expression)
+        manualChunks: (id) => {
+          // No code splitting code below
+          // if (id.endsWith('.html')) {
+          //   return `${id.split('/').at(-2)}.html`;
+          // }
+          return undefined;
+        },
+      },
+    },
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, '.'),
+      },
+    },
+    cssCodeSplit: true,
+    assetsInlineLimit: 100_000_000_000,
+    chunkSizeWarningLimit: 100_000_000_000,
+    reportCompressedSize: false,
+    minify: mode === 'production',
+  },
+}));
+
+export default config;
