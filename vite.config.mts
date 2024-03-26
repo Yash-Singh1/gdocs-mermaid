@@ -2,7 +2,9 @@ import { type Plugin, defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { resolve } from 'node:path';
 import rollupPluginAlias from '@rollup/plugin-alias';
-import { readdirSync } from 'node:fs';
+import { readdirSync, promises as fsPromises } from 'node:fs';
+
+const readFile = fsPromises.readFile;
 
 function replaceCss(
   html: string,
@@ -81,7 +83,7 @@ function rewriteFiles() {
   // Rewrites files in preparation for GAS deployment and better HMR
   return {
     name: 'rewrite-files',
-    enforce: 'post' as const,
+    enforce: 'pre' as const,
     generateBundle(_, bundle) {
       for (const bundleKey in bundle) {
         if (bundleKey.endsWith('.html')) {
@@ -91,6 +93,27 @@ function rewriteFiles() {
           );
         }
       }
+    },
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const url = new URL(
+          req.url,
+          `http://${req.headers.host || 'localhost'}`
+        );
+        if (req.method === 'GET' && url.pathname.endsWith('.html') && !url.pathname.endsWith('index.html')) {
+          req.url = req.url.replace(
+            /\/(.*?)\.html(\?.*?)?$/,
+            '/routes/$1/index.html$2'
+          );
+          res.writeHead(302, {
+            Location: req.url,
+          });
+          res.end();
+          return;
+        }
+
+        next();
+      });
     },
   } satisfies Plugin;
 }
@@ -154,7 +177,7 @@ const config = defineConfig(({ mode }) => ({
         chunkFileNames: `[name].js`,
         assetFileNames: `[name].[ext]`,
         inlineDynamicImports: false,
-        format: 'amd',
+        format: 'es',
         // Disable code-splitting to allow iife (immediately invoked function expression)
         manualChunks: (id) => {
           // No code splitting code below
